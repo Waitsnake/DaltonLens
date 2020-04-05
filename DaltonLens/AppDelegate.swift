@@ -246,8 +246,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let icon = NSImage(named:"DaltonLensIcon_32x32")
         icon!.isTemplate = true
         
-        statusItem!.button?.image = icon!
-        statusItem!.button?.cell?.isHighlighted = true
+        statusItem!.button!.image = icon!
+        statusItem!.button!.cell!.isHighlighted = false
         
         let menu = NSMenu()
 
