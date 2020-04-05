@@ -34,6 +34,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                                        action: #selector(AppDelegate.setBlindnessType(sender:)),
                                        keyEquivalent: "")
     
+    let protanomalyMenuItem = NSMenuItem(title: "Protanomaly",
+                                       action: #selector(AppDelegate.setBlindnessType(sender:)),
+                                       keyEquivalent: "")
+    
+    let deuteranomalyMenuItem = NSMenuItem(title: "Deuteranomaly",
+                                         action: #selector(AppDelegate.setBlindnessType(sender:)),
+                                         keyEquivalent: "")
+    
+    let tritanomalyMenuItem = NSMenuItem(title: "Tritanomaly",
+                                       action: #selector(AppDelegate.setBlindnessType(sender:)),
+                                       keyEquivalent: "")
+    
     var nothingMenuItem = NSMenuItem(title: "Nothing",
                                      action: #selector(AppDelegate.setProcessingMode(sender:)),
                                      keyEquivalent: "0")
@@ -106,7 +118,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         menuItemsToBlindnessType = [
             protanopeMenuItem: Protanope,
             deuteranopeMenuItem: Deuteranope,
-            tritanopeMenuItem: Tritanope
+            tritanopeMenuItem: Tritanope,
+            protanomalyMenuItem: Protanomaly,
+            deuteranomalyMenuItem: Deuteranomaly,
+            tritanomalyMenuItem: Tritanomaly
         ];
         
         blindnessTypeToMenuItem = [:];
@@ -123,7 +138,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let menuItemsToBlindnessType = [
             protanopeMenuItem: Protanope,
             deuteranopeMenuItem: Deuteranope,
-            tritanopeMenuItem: Tritanope]
+            tritanopeMenuItem: Tritanope,
+            protanomalyMenuItem: Protanomaly,
+            deuteranomalyMenuItem: Deuteranomaly,
+            tritanomalyMenuItem: Tritanomaly]
         
         if let dview = daltonView {
             
@@ -238,6 +256,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             blindnessMenu.addItem(protanopeMenuItem)
             blindnessMenu.addItem(deuteranopeMenuItem)
             blindnessMenu.addItem(tritanopeMenuItem)
+            blindnessMenu.addItem(protanomalyMenuItem)
+            blindnessMenu.addItem(deuteranomalyMenuItem)
+            blindnessMenu.addItem(tritanomalyMenuItem)
             protanopeMenuItem.state = .on // default is Protanope
             
             let blindnessMenuItem = NSMenuItem(title: "Blindness", action: nil, keyEquivalent: "")

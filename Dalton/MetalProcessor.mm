@@ -81,12 +81,18 @@
     _pipelineStates[@(SimulateDaltonism)] = @[[self createPipelineWithFragment:@"fragment_simulateDaltonism_protanope"],
                                               [self createPipelineWithFragment:@"fragment_simulateDaltonism_deuteranope"],
                                               [self createPipelineWithFragment:@"fragment_simulateDaltonism_tritanope"],
+                                              [self createPipelineWithFragment:@"fragment_simulateDaltonism_protanomaly"],
+                                              [self createPipelineWithFragment:@"fragment_simulateDaltonism_deuteranomaly"],
+                                              [self createPipelineWithFragment:@"fragment_simulateDaltonism_tritanomaly"],
                                               ];
     
     _pipelineStates[@(DaltonizeV1)] = @[
                                         [self createPipelineWithFragment:@"fragment_daltonizeV1_protanope"],
                                         [self createPipelineWithFragment:@"fragment_daltonizeV1_deuteranope"],
                                         [self createPipelineWithFragment:@"fragment_daltonizeV1_tritanope"],
+                                        [self createPipelineWithFragment:@"fragment_daltonizeV1_protanomaly"],
+                                        [self createPipelineWithFragment:@"fragment_daltonizeV1_deuteranomaly"],
+                                        [self createPipelineWithFragment:@"fragment_daltonizeV1_tritanomaly"],
                                         ];
     
     _pipelineStates[@(SwitchCbCr)] = @[[self createPipelineWithFragment:@"fragment_swapCbCr"]];

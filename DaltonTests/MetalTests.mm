@@ -127,7 +127,10 @@ using namespace dl;
     for (const auto blindnessType : {
         DLBlindnessType::Protanope,
         DLBlindnessType::Deuteranope,
-        DLBlindnessType::Tritanope})
+        DLBlindnessType::Tritanope,
+        DLBlindnessType::Protanomaly,
+        DLBlindnessType::Deuteranomaly,
+        DLBlindnessType::Tritanomaly})
     {
         [self runProcessingMode:DLProcessingMode::DaltonizeV1
                   blindnessType:blindnessType

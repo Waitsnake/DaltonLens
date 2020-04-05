@@ -26,6 +26,10 @@ float3 applyProtanope (float3 lms);
 float3 applyDeuteranope (float3 lms);
 float3 applyTritanope (float3 lms);
 
+float4 applyProtanomalyRgb (float4 srgba);
+float4 applyDeuteranomalyRgb (float4 srgba);
+float4 applyTritanomalyRgb (float4 srgba);
+
 float4 daltonizeV1 (float4 srgba, float4 srgbaSimulated);
 
 // AA = antialiasing.
@@ -274,6 +278,56 @@ float3 applyTritanope (float3 lms)
     return lmsTransformed;
 }
 
+float4 applyProtanomalyRgb (float4 srgba)
+{
+    /* TODO
+     I really would like to do Protanomaly, Deuteranomaly and Tritanomaly in LMS Space instead of RGB Space,
+     but I could not find in any publication the Matrix values of those for LMS Space(?).
+     All LMS Space publications only show Protanopia, Deuteranopia and Tritanopia and have copied the same values from each other.
+     And I could not figure out how to calulate the missing LMS Space values? In RGB Space the values are easier to understand
+     and I could easly simulate different levels of Color Defects.
+     
+     Some Matrix values for Color Defects in RGB Space (https://phabricator.kde.org/T2395Protanomaly):
+     
+     'Normal':[1,0,0,0,0, 0,1,0,0,0, 0,0,1,0,0, 0,0,0,1,0, 0,0,0,0,1],
+     'Protanopia':[0.567,0.433,0,0,0, 0.558,0.442,0,0,0, 0,0.242,0.758,0,0, 0,0,0,1,0, 0,0,0,0,1],
+     'Protanomaly':[0.817,0.183,0,0,0, 0.333,0.667,0,0,0, 0,0.125,0.875,0,0, 0,0,0,1,0, 0,0,0,0,1],
+     'Deuteranopia':[0.625,0.375,0,0,0, 0.7,0.3,0,0,0, 0,0.3,0.7,0,0, 0,0,0,1,0, 0,0,0,0,1],
+     'Deuteranomaly':[0.8,0.2,0,0,0, 0.258,0.742,0,0,0, 0,0.142,0.858,0,0, 0,0,0,1,0, 0,0,0,0,1],
+     'Tritanopia':[0.95,0.05,0,0,0, 0,0.433,0.567,0,0, 0,0.475,0.525,0,0, 0,0,0,1,0, 0,0,0,0,1],
+     'Tritanomaly':[0.967,0.033,0,0,0, 0,0.733,0.267,0,0, 0,0.183,0.817,0,0, 0,0,0,1,0, 0,0,0,0,1],
+     'Achromatopsia':[0.299,0.587,0.114,0,0, 0.299,0.587,0.114,0,0, 0.299,0.587,0.114,0,0, 0,0,0,1,0, 0,0,0,0,1],
+     'Achromatomaly':[0.618,0.320,0.062,0,0, 0.163,0.775,0.062,0,0, 0.163,0.320,0.516,0,0
+     */
+    
+    float4 srgbaTransformed = srgba;
+    srgbaTransformed[0] = 0.81667*srgba[0] + 0.18333*srgba[1] +   0.0*srgba[2];
+    srgbaTransformed[1] = 0.33333*srgba[0] + 0.66667*srgba[1] +   0.0*srgba[2];
+    srgbaTransformed[2] =     0.0*srgba[0] + 0.125  *srgba[1] + 0.875*srgba[2];
+    srgbaTransformed[3] =                                                       1.0*srgba[3];
+    return srgbaTransformed;
+}
+
+float4 applyDeuteranomalyRgb (float4 srgba)
+{
+    float4 srgbaTransformed = srgba;
+    srgbaTransformed[0] =   0.8*srgba[0] +   0.2*srgba[1] +   0.0*srgba[2];
+    srgbaTransformed[1] = 0.258*srgba[0] + 0.742*srgba[1] +   0.0*srgba[2];
+    srgbaTransformed[2] =   0.0*srgba[0] + 0.142*srgba[1] + 0.858*srgba[2];
+    srgbaTransformed[3] =                                                   1.0*srgba[3];
+    return srgbaTransformed;
+}
+
+float4 applyTritanomalyRgb (float4 srgba)
+{
+    float4 srgbaTransformed = srgba;
+    srgbaTransformed[0] = 0.967*srgba[0] + 0.033*srgba[1] +   0.0*srgba[2];
+    srgbaTransformed[1] =   0.0*srgba[0] + 0.733*srgba[1] + 0.267*srgba[2];
+    srgbaTransformed[2] =   0.0*srgba[0] + 0.183*srgba[1] + 0.817*srgba[2];
+    srgbaTransformed[3] =                                                   1.0*srgba[3];
+    return srgbaTransformed;
+}
+
 fragment float4 fragment_simulateDaltonism_protanope(VertexOut vert [[stage_in]],
                                                      texture2d<float> screenTexture [[texture(0)]])
 {
@@ -303,6 +357,30 @@ fragment float4 fragment_simulateDaltonism_tritanope(VertexOut vert [[stage_in]]
     float3 lms = lmsFromSRGBA(srgba);
     float3 lmsTransformed = applyTritanope(lms);
     float4 srgbaOut = sRGBAFromLms(lmsTransformed, 1.0);
+    return srgbaOut;
+}
+
+fragment float4 fragment_simulateDaltonism_protanomaly(VertexOut vert [[stage_in]],
+                                                       texture2d<float> screenTexture [[texture(0)]])
+{
+    float4 srgba = screenTexture.sample(defaultSampler, vert.texCoords);
+    float4 srgbaOut = applyProtanomalyRgb(srgba);
+    return srgbaOut;
+}
+
+fragment float4 fragment_simulateDaltonism_deuteranomaly(VertexOut vert [[stage_in]],
+                                                         texture2d<float> screenTexture [[texture(0)]])
+{
+    float4 srgba = screenTexture.sample(defaultSampler, vert.texCoords);
+    float4 srgbaOut = applyDeuteranomalyRgb(srgba);
+    return srgbaOut;
+}
+
+fragment float4 fragment_simulateDaltonism_tritanomaly(VertexOut vert [[stage_in]],
+                                                       texture2d<float> screenTexture [[texture(0)]])
+{
+    float4 srgba = screenTexture.sample(defaultSampler, vert.texCoords);
+    float4 srgbaOut = applyTritanomalyRgb(srgba);
     return srgbaOut;
 }
 
@@ -348,6 +426,33 @@ fragment float4 fragment_daltonizeV1_tritanope(VertexOut vert [[stage_in]],
     float3 lms = lmsFromSRGBA(srgba);
     float3 lmsSimulated = applyTritanope(lms);
     float4 srgbaSimulated = sRGBAFromLms(lmsSimulated, 1.0);
+    float4 srgbaOut = daltonizeV1(srgba, srgbaSimulated);
+    return srgbaOut;
+}
+
+fragment float4 fragment_daltonizeV1_protanomaly(VertexOut vert [[stage_in]],
+                                                 texture2d<float> screenTexture [[texture(0)]])
+{
+    float4 srgba = screenTexture.sample(defaultSampler, vert.texCoords);
+    float4 srgbaSimulated = applyProtanomalyRgb(srgba);
+    float4 srgbaOut = daltonizeV1(srgba, srgbaSimulated);
+    return srgbaOut;
+}
+
+fragment float4 fragment_daltonizeV1_deuteranomaly(VertexOut vert [[stage_in]],
+                                                   texture2d<float> screenTexture [[texture(0)]])
+{
+    float4 srgba = screenTexture.sample(defaultSampler, vert.texCoords);
+    float4 srgbaSimulated = applyDeuteranomalyRgb(srgba);
+    float4 srgbaOut = daltonizeV1(srgba, srgbaSimulated);
+    return srgbaOut;
+}
+
+fragment float4 fragment_daltonizeV1_tritanomaly(VertexOut vert [[stage_in]],
+                                                 texture2d<float> screenTexture [[texture(0)]])
+{
+    float4 srgba = screenTexture.sample(defaultSampler, vert.texCoords);
+    float4 srgbaSimulated = applyTritanomalyRgb(srgba);
     float4 srgbaOut = daltonizeV1(srgba, srgbaSimulated);
     return srgbaOut;
 }
