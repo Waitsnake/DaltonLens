@@ -211,6 +211,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             if let processingType = menuItemsToProcessingMode[sender] {
                 dview.processingMode = processingType
                 dview.needsDisplay = true
+                
+                let defaults = UserDefaults.standard;
+                defaults.set(processingType.rawValue, forKey:"ProcessingMode")
+                defaults.synchronize();
             }
             else
             {
@@ -479,16 +483,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         createWindowAndDaltonView ()
         
-        // Start with nothing.
-        daltonView?.processingMode = Nothing
-        setProcessingMode(mode: Nothing)
-        
         let defaults = UserDefaults.standard;
         
         if (defaults.value(forKey: "BlindnessType") != nil) {
             let intValue = defaults.integer(forKey:"BlindnessType")
             let blindnessType = DLBlindnessType(rawValue:UInt32(intValue))
             setBlindnessType(blindnessType:blindnessType)
+        }
+        
+        if (defaults.value(forKey: "ProcessingMode") != nil) {
+            let intValue2 = defaults.integer(forKey:"ProcessingMode")
+            let processingType = DLProcessingMode(rawValue:UInt32(intValue2))
+            daltonView?.processingMode = processingType
+            setProcessingMode(mode:processingType)
         }
         
         if (defaults.value(forKey: "LaunchAtStartup") != nil) {
