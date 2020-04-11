@@ -13,4 +13,7 @@ typedef enum
     Protanope = 0,
     Deuteranope = 1,
     Tritanope = 2,
+    Protanomaly = 3,
+    Deuteranomaly = 4,
+    Tritanomaly = 5,
 } DLBlindnessType;

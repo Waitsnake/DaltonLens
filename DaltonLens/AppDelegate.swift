@@ -9,6 +9,8 @@ import ServiceManagement
 
 // @NSApplicationMain
 
+@objcMembers
+
 class AppDelegate: NSObject, NSApplicationDelegate {
 
     private var window : NSWindow?
@@ -29,6 +31,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                                          keyEquivalent: "")
     
     let tritanopeMenuItem = NSMenuItem(title: "Tritanope",
+                                       action: #selector(AppDelegate.setBlindnessType(sender:)),
+                                       keyEquivalent: "")
+    
+    let protanomalyMenuItem = NSMenuItem(title: "Protanomaly",
+                                       action: #selector(AppDelegate.setBlindnessType(sender:)),
+                                       keyEquivalent: "")
+    
+    let deuteranomalyMenuItem = NSMenuItem(title: "Deuteranomaly",
+                                         action: #selector(AppDelegate.setBlindnessType(sender:)),
+                                         keyEquivalent: "")
+    
+    let tritanomalyMenuItem = NSMenuItem(title: "Tritanomaly",
                                        action: #selector(AppDelegate.setBlindnessType(sender:)),
                                        keyEquivalent: "")
     
@@ -72,10 +86,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     override init () {
         
-        let cmdAltCtrlMask = NSEventModifierFlags(rawValue:
-            NSEventModifierFlags.command.rawValue
-                | NSEventModifierFlags.control.rawValue
-                | NSEventModifierFlags.option.rawValue)
+        let cmdAltCtrlMask = NSEvent.ModifierFlags(rawValue:
+            NSEvent.ModifierFlags.command.rawValue
+                | NSEvent.ModifierFlags.control.rawValue
+                | NSEvent.ModifierFlags.option.rawValue)
         
         nothingMenuItem.keyEquivalentModifierMask = cmdAltCtrlMask
         daltonizeV1MenuItem.keyEquivalentModifierMask = cmdAltCtrlMask
@@ -104,7 +118,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         menuItemsToBlindnessType = [
             protanopeMenuItem: Protanope,
             deuteranopeMenuItem: Deuteranope,
-            tritanopeMenuItem: Tritanope
+            tritanopeMenuItem: Tritanope,
+            protanomalyMenuItem: Protanomaly,
+            deuteranomalyMenuItem: Deuteranomaly,
+            tritanomalyMenuItem: Tritanomaly
         ];
         
         blindnessTypeToMenuItem = [:];
@@ -121,7 +138,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let menuItemsToBlindnessType = [
             protanopeMenuItem: Protanope,
             deuteranopeMenuItem: Deuteranope,
-            tritanopeMenuItem: Tritanope]
+            tritanopeMenuItem: Tritanope,
+            protanomalyMenuItem: Protanomaly,
+            deuteranomalyMenuItem: Deuteranomaly,
+            tritanomalyMenuItem: Tritanomaly]
         
         if let dview = daltonView {
             
@@ -139,11 +159,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             
             // Disable all items
             for item in menuItemsToBlindnessType.keys {
-                item.state = NSOffState
+                item.state = .off
             }
             
             // Re-enable the current one. 
-            sender.state = NSOnState
+            sender.state = .on
         }
         else
         {
@@ -154,7 +174,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     func toggleLaunchAtStartup (sender: NSMenuItem) {
         
-        let wasEnabled = (sender.state == NSOnState);
+        let wasEnabled = (sender.state == .on);
         let enabled = !wasEnabled;
         
         let changeApplied = SMLoginItemSetEnabled("org.daltonLens.DaltonLensLaunchAtLoginHelper" as CFString, enabled)
@@ -164,13 +184,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             defaults.set(enabled, forKey:"LaunchAtStartup")
             defaults.synchronize();
             
-            sender.state = enabled ? NSOnState : NSOffState;
+            sender.state = enabled ? .on : .off;
         }
         else
         {
             let alert = NSAlert()
             alert.window.title = "DaltonLens error";
-            alert.alertStyle = NSCriticalAlertStyle;
+            alert.alertStyle = .critical;
             alert.messageText = "Could not apply the change"
             alert.informativeText = "Please report the issue."
             alert.runModal();
@@ -191,6 +211,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             if let processingType = menuItemsToProcessingMode[sender] {
                 dview.processingMode = processingType
                 dview.needsDisplay = true
+                
+                let defaults = UserDefaults.standard;
+                defaults.set(processingType.rawValue, forKey:"ProcessingMode")
+                defaults.synchronize();
             }
             else
             {
@@ -199,11 +223,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             
             // Disable all items
             for item in menuItemsToProcessingMode.keys {
-                item.state = NSOffState
+                item.state = .off
             }
             
             // Re-enable the current one.
-            sender.state = NSOnState
+            sender.state = .on
         }
         else
         {
@@ -221,13 +245,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func createStatusBarItem () {
         
         // Do any additional setup after loading the view.
-        statusItem = NSStatusBar.system().statusItem(withLength: NSSquareStatusItemLength)
+        statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
         
         let icon = NSImage(named:"DaltonLensIcon_32x32")
         icon!.isTemplate = true
         
-        statusItem!.image = icon!
-        statusItem!.highlightMode = true
+        statusItem!.button!.image = icon!
+        statusItem!.button!.cell!.isHighlighted = false
         
         let menu = NSMenu()
 
@@ -236,7 +260,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             blindnessMenu.addItem(protanopeMenuItem)
             blindnessMenu.addItem(deuteranopeMenuItem)
             blindnessMenu.addItem(tritanopeMenuItem)
-            protanopeMenuItem.state = NSOnState // default is Protanope
+            blindnessMenu.addItem(protanomalyMenuItem)
+            blindnessMenu.addItem(deuteranomalyMenuItem)
+            blindnessMenu.addItem(tritanomalyMenuItem)
+            protanopeMenuItem.state = .on // default is Protanope
             
             let blindnessMenuItem = NSMenuItem(title: "Blindness", action: nil, keyEquivalent: "")
             blindnessMenuItem.submenu = blindnessMenu
@@ -257,7 +284,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             processingMenu.addItem(highlightExactColorUnderMouseMenuItem)
             #endif
             
-            nothingMenuItem.state = NSOnState // default is Nothing
+            nothingMenuItem.state = .on // default is Nothing
             
             let processingMenuItem = NSMenuItem(title: "Processing", action: nil, keyEquivalent: "")
             processingMenuItem.submenu = processingMenu
@@ -279,36 +306,42 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     func createGlobalShortcuts () {
         
-        let cmdControlAlt = NSCommandKeyMask.rawValue |
-            NSControlKeyMask.rawValue |
-            NSAlternateKeyMask.rawValue
+        // TODO: dont know how these shortcuts now handled in swift 4 ? I just replace them by teir old raw value.
+        let cmdControlAlt = (1 << 20) |
+            (1 << 18) |
+            (1 << 19)
+        
+        //let cmdControlAlt = NSEventModifierFlagControl |
+        //    NSEventModifierFlagControl |
+        //    NSEventModifierFlagOption
+        
         
         let shortcutNoProcessing = MASShortcut(keyCode:UInt(kVK_ANSI_0),
-                                               modifierFlags:cmdControlAlt);
+                                               modifierFlags:UInt(cmdControlAlt));
         
         let shortcutDaltonizeV1 = MASShortcut(keyCode:UInt(kVK_ANSI_1),
-                                               modifierFlags:cmdControlAlt);
+                                              modifierFlags:UInt(cmdControlAlt));
         
         let shortcutSwitchRedBlue = MASShortcut(keyCode:UInt(kVK_ANSI_2),
-                                                modifierFlags:cmdControlAlt);
+                                                modifierFlags:UInt(cmdControlAlt));
         
         let shortcutSwitchAndFlipRedBlue = MASShortcut(keyCode:UInt(kVK_ANSI_3),
-                                                modifierFlags:cmdControlAlt);
+                                                       modifierFlags:UInt(cmdControlAlt));
         
         let shortcutInvertLightness = MASShortcut(keyCode:UInt(kVK_ANSI_4),
-                                                  modifierFlags:cmdControlAlt);
+                                                  modifierFlags:UInt(cmdControlAlt));
         
         let shortcutHighlightColorUnderMouse = MASShortcut(keyCode:UInt(kVK_ANSI_8),
-                                                           modifierFlags:cmdControlAlt);
+                                                           modifierFlags:UInt(cmdControlAlt));
         
         let shortcutHighlightExactColorUnderMouse = MASShortcut(keyCode:UInt(kVK_ANSI_9),
-                                                       modifierFlags:cmdControlAlt);
+                                                                modifierFlags:UInt(cmdControlAlt));
         
         let shortcutUp = MASShortcut(keyCode:UInt(kVK_UpArrow),
-                                     modifierFlags:cmdControlAlt);
+                                     modifierFlags:UInt(cmdControlAlt));
         
         let shortcutDown = MASShortcut(keyCode:UInt(kVK_DownArrow),
-                                       modifierFlags:cmdControlAlt);
+                                       modifierFlags:UInt(cmdControlAlt));
         
         func incrProcessingMode (currentMode: DLProcessingMode) -> DLProcessingMode {
             let nextMode = (currentMode.rawValue + 1) % (NumProcessingModes.rawValue)
@@ -391,9 +424,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func makeClosableWindow () {
         
         window = NSWindow.init(contentRect: NSMakeRect(300, 300, 640, 400),
-                               styleMask: [NSTitledWindowMask,
-                                           NSResizableWindowMask],
-                               backing: NSBackingStoreType.buffered,
+                               styleMask: [.fullSizeContentView,
+                                           .resizable],
+                               backing: NSWindow.BackingStoreType.buffered,
                                defer: true);
         
         window!.makeKeyAndOrderFront(self);
@@ -402,20 +435,20 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     func makeAssistiveWindow () {
         
-        self.window = NSWindow.init(contentRect: NSScreen.main()!.frame,
-                                    styleMask: [NSTitledWindowMask],
-                                    backing: NSBackingStoreType.buffered,
+        self.window = NSWindow.init(contentRect: NSScreen.main!.frame,
+                                    styleMask: [.fullSizeContentView],
+                                    backing: NSWindow.BackingStoreType.buffered,
                                     defer: true);
         
         if let window = self.window {
         
-            window.styleMask = NSBorderlessWindowMask;
-            window.level = Int(CGWindowLevelKey.assistiveTechHighWindow.rawValue);
-            window.preferredBackingLocation = NSWindowBackingLocation.videoMemory;
-            window.collectionBehavior = [NSWindowCollectionBehavior.stationary,
+            window.styleMask = .borderless;
+            window.level = convertToNSWindowLevel(Int(CGWindowLevelKey.assistiveTechHighWindow.rawValue));
+            //window.preferredBackingLocation = NSWindow.BackingLocation.videoMemory;
+            window.collectionBehavior = [NSWindow.CollectionBehavior.stationary,
                                          // NSWindowCollectionBehavior.canJoinAllSpaces,
-                                        NSWindowCollectionBehavior.moveToActiveSpace,
-                                        NSWindowCollectionBehavior.ignoresCycle];
+                                        NSWindow.CollectionBehavior.moveToActiveSpace,
+                                        NSWindow.CollectionBehavior.ignoresCycle];
             
             // window.backgroundColor = NSColor.clear;
             // Using a tiny alpha value to make sure that windows below this window get refreshes.
@@ -433,7 +466,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // makeClosableWindow ()
         
         // Disabling sharing to avoid capturing this window.
-        window!.sharingType = NSWindowSharingType.none
+        window!.sharingType = NSWindow.SharingType.none
         
         daltonView = DaltonView.init(frame: window!.frame)
         window!.contentView = daltonView
@@ -450,10 +483,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         createWindowAndDaltonView ()
         
-        // Start with nothing.
-        daltonView?.processingMode = Nothing
-        setProcessingMode(mode: Nothing)
-        
         let defaults = UserDefaults.standard;
         
         if (defaults.value(forKey: "BlindnessType") != nil) {
@@ -462,9 +491,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             setBlindnessType(blindnessType:blindnessType)
         }
         
+        if (defaults.value(forKey: "ProcessingMode") != nil) {
+            let intValue2 = defaults.integer(forKey:"ProcessingMode")
+            let processingType = DLProcessingMode(rawValue:UInt32(intValue2))
+            daltonView?.processingMode = processingType
+            setProcessingMode(mode:processingType)
+        }
+        
         if (defaults.value(forKey: "LaunchAtStartup") != nil) {
             let enabled = defaults.bool(forKey:"LaunchAtStartup")
-            launchAtStartupMenuItem.state = enabled ? NSOnState : NSOffState;
+            launchAtStartupMenuItem.state = enabled ? .on : .off;
         }
     }
 
@@ -473,7 +509,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     func quit () {
-        NSApplication.shared().terminate (self);
+        NSApplication.shared.terminate (self);
     }
 
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToNSWindowLevel(_ input: Int) -> NSWindow.Level {
+	return NSWindow.Level(rawValue: input)
 }

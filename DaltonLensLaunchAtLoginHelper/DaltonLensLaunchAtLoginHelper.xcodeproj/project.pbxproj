@@ -91,16 +91,12 @@
 		2D4C76C01E77404F00DCBBB7 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-<<<<<<< Updated upstream
-				LastUpgradeCheck = 0920;
-=======
 				LastUpgradeCheck = 1130;
->>>>>>> Stashed changes
 				ORGANIZATIONNAME = "Nicolas Burrus";
 				TargetAttributes = {
 					2D4C76C71E77404F00DCBBB7 = {
 						CreatedOnToolsVersion = 8.2.1;
-						DevelopmentTeam = 68TMSR28JT;
+						DevelopmentTeam = SQ837JJYGQ;
 						ProvisioningStyle = Automatic;
 						SystemCapabilities = {
 							com.apple.Sandbox = {
@@ -112,7 +108,7 @@
 			};
 			buildConfigurationList = 2D4C76C31E77404F00DCBBB7 /* Build configuration list for PBXProject "DaltonLensLaunchAtLoginHelper" */;
 			compatibilityVersion = "Xcode 3.2";
-			developmentRegion = English;
+			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
@@ -155,6 +151,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
@@ -164,6 +161,7 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -171,6 +169,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
@@ -208,6 +207,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
@@ -217,6 +217,7 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -224,6 +225,7 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
@@ -257,12 +259,8 @@
 				CODE_SIGN_ENTITLEMENTS = DaltonLensLaunchAtLoginHelper/DaltonLensLaunchAtLoginHelper.entitlements;
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
-<<<<<<< Updated upstream
-				DEVELOPMENT_TEAM = 68TMSR28JT;
-=======
 				DEVELOPMENT_TEAM = SQ837JJYGQ;
 				ENABLE_HARDENED_RUNTIME = YES;
->>>>>>> Stashed changes
 				INFOPLIST_FILE = DaltonLensLaunchAtLoginHelper/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = org.daltonLens.DaltonLensLaunchAtLoginHelper;
@@ -278,12 +276,8 @@
 				CODE_SIGN_ENTITLEMENTS = DaltonLensLaunchAtLoginHelper/DaltonLensLaunchAtLoginHelper.entitlements;
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
-<<<<<<< Updated upstream
-				DEVELOPMENT_TEAM = 68TMSR28JT;
-=======
 				DEVELOPMENT_TEAM = SQ837JJYGQ;
 				ENABLE_HARDENED_RUNTIME = YES;
->>>>>>> Stashed changes
 				INFOPLIST_FILE = DaltonLensLaunchAtLoginHelper/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = org.daltonLens.DaltonLensLaunchAtLoginHelper;

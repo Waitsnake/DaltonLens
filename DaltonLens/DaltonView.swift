@@ -206,7 +206,7 @@ class DaltonView: MTKView, AVCaptureVideoDataOutputSampleBufferDelegate {
         let processor : DLMetalProcessor
         
         public init(_ device: MTLDevice) {
-            commandQueue = device.makeCommandQueue()
+            commandQueue = device.makeCommandQueue()!
             processor = DLMetalProcessor.init(device: device)
             mtlRenderer = DLMetalRenderer.init(processor: processor)
         }
@@ -297,12 +297,8 @@ class DaltonView: MTKView, AVCaptureVideoDataOutputSampleBufferDelegate {
         fpsMonitor.tick()
         
         
-<<<<<<< Updated upstream
-        let mouseLocation = NSEvent.mouseLocation()
-=======
         /*
         let mouseLocation = NSEvent.mouseLocation
->>>>>>> Stashed changes
         let screenToImageScale = Float(screenImage!.width)/Float(displayRect.width)
         let mouseInImage = CGPoint.init(x: mouseLocation.x,
                                         y: (displayRect.height-mouseLocation.y))
@@ -371,8 +367,8 @@ class DaltonView: MTKView, AVCaptureVideoDataOutputSampleBufferDelegate {
                                    commandBuffer: commandBuffer,
                                    renderPassDescriptor: rpd);
             
-            commandBuffer.present(drawable)
-            commandBuffer.commit()
+            commandBuffer!.present(drawable)
+            commandBuffer!.commit()
         }
         */
  

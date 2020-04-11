@@ -22,7 +22,7 @@ namespace {
         return drg + drb + dgb;
     }
     
-    inline DLRGBAPixel sRgbToLinear (const DLRGBAPixel& srgba)
+    /*inline DLRGBAPixel sRgbToLinear (const DLRGBAPixel& srgba)
     {
         auto sRgbToLinearU8 = [](uint8_t s) -> float {
             const float S = s/255.f;
@@ -36,7 +36,7 @@ namespace {
         lrgba.b = sRgbToLinearU8(srgba.b);
         lrgba.a = srgba.a;
         return lrgba;
-    }
+    }*/
     
 } // anonymous
 
