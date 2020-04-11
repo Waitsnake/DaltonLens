@@ -91,7 +91,7 @@
 		2D4C76C01E77404F00DCBBB7 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1030;
+				LastUpgradeCheck = 1130;
 				ORGANIZATIONNAME = "Nicolas Burrus";
 				TargetAttributes = {
 					2D4C76C71E77404F00DCBBB7 = {
@@ -260,6 +260,7 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = SQ837JJYGQ;
+				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = DaltonLensLaunchAtLoginHelper/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = org.daltonLens.DaltonLensLaunchAtLoginHelper;
@@ -276,6 +277,7 @@
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = SQ837JJYGQ;
+				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = DaltonLensLaunchAtLoginHelper/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = org.daltonLens.DaltonLensLaunchAtLoginHelper;

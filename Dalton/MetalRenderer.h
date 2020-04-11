@@ -15,13 +15,15 @@
 
 #import <Metal/Metal.h>
 
+#import <MetalKit/MetalKit.h>
+
 @interface DLMetalRenderer : NSObject
 
 @property (readonly) struct DLMetalUniforms* uniformsBuffer;
 
 - (id)init UNAVAILABLE_ATTRIBUTE;
 - (instancetype)initWithProcessor:(DLMetalProcessor*)processor;
-- (void)renderWithScreenImage:(CGImageRef)screenImage
+- (void)renderWithScreenImage:(id<MTLTexture>)screenImage
                 commandBuffer:(id<MTLCommandBuffer>)commandBuffer
          renderPassDescriptor:(MTLRenderPassDescriptor*)rpd;
 @end
