@@ -91,7 +91,11 @@
 		2D4C76C01E77404F00DCBBB7 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+<<<<<<< Updated upstream
 				LastUpgradeCheck = 0920;
+=======
+				LastUpgradeCheck = 1130;
+>>>>>>> Stashed changes
 				ORGANIZATIONNAME = "Nicolas Burrus";
 				TargetAttributes = {
 					2D4C76C71E77404F00DCBBB7 = {
@@ -253,7 +257,12 @@
 				CODE_SIGN_ENTITLEMENTS = DaltonLensLaunchAtLoginHelper/DaltonLensLaunchAtLoginHelper.entitlements;
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
+<<<<<<< Updated upstream
 				DEVELOPMENT_TEAM = 68TMSR28JT;
+=======
+				DEVELOPMENT_TEAM = SQ837JJYGQ;
+				ENABLE_HARDENED_RUNTIME = YES;
+>>>>>>> Stashed changes
 				INFOPLIST_FILE = DaltonLensLaunchAtLoginHelper/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = org.daltonLens.DaltonLensLaunchAtLoginHelper;
@@ -269,7 +278,12 @@
 				CODE_SIGN_ENTITLEMENTS = DaltonLensLaunchAtLoginHelper/DaltonLensLaunchAtLoginHelper.entitlements;
 				CODE_SIGN_IDENTITY = "Mac Developer";
 				COMBINE_HIDPI_IMAGES = YES;
+<<<<<<< Updated upstream
 				DEVELOPMENT_TEAM = 68TMSR28JT;
+=======
+				DEVELOPMENT_TEAM = SQ837JJYGQ;
+				ENABLE_HARDENED_RUNTIME = YES;
+>>>>>>> Stashed changes
 				INFOPLIST_FILE = DaltonLensLaunchAtLoginHelper/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = org.daltonLens.DaltonLensLaunchAtLoginHelper;

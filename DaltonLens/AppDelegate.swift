@@ -420,7 +420,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             // window.backgroundColor = NSColor.clear;
             // Using a tiny alpha value to make sure that windows below this window get refreshes.
             // Apps like Google Chrome or spotify won't redraw otherwise.
-            window.alphaValue = 0.999;
+            window.alphaValue = 0.5;
             window.isOpaque = false;
             // window.orderFront (0);
             window.ignoresMouseEvents = true;

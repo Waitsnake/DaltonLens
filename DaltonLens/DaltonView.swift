@@ -7,6 +7,7 @@
 import Cocoa
 import Metal
 import MetalKit
+import AVFoundation
 
 // For the CPU version, applies a function to a CGImage
 func transformCGImage(inImage: CGImage,
@@ -179,7 +180,15 @@ class PatchExtractorFromCGImage : NSObject {
  This view is going to be rendered on top of everything else. The content of the other windows
  is captured via CGWindowListCreateImage, which we load into an MTL texture, process, and render.
  */
-class DaltonView: MTKView {
+class DaltonView: MTKView, AVCaptureVideoDataOutputSampleBufferDelegate {
+    
+    private var _session = AVCaptureSession()
+    
+    private var videoTextureCache : CVMetalTextureCache?
+    
+    private var sampleBuffer : CMSampleBuffer?
+    
+    var accesGranted = false
 
     private let fpsMonitor = FPSMonitor()
     
@@ -234,6 +243,40 @@ class DaltonView: MTKView {
         
         // enableSetNeedsDisplay = true
         preferredFramesPerSecond = 30
+        
+
+        
+        
+        AVCaptureDevice.requestAccess(for: .video) { success in
+          if success { // if request is granted (success is true)
+            self.accesGranted = true
+            debugPrint("acces granted")
+          } else { // if request is denied (success is false)
+            self.accesGranted = false
+            debugPrint("no acces granted")
+          }
+        }
+
+        
+        if (self.accesGranted == false)
+        {
+            self._session = AVCaptureSession()
+            self._session.sessionPreset = AVCaptureSession.Preset.photo
+            let input = AVCaptureScreenInput.init(displayID: CGMainDisplayID())
+            input!.minFrameDuration = CMTimeMake(value: 1, timescale: 30)
+            self._session.addInput(input!)
+            let output = AVCaptureVideoDataOutput.init()
+            
+            output.videoSettings = [((kCVPixelBufferPixelFormatTypeKey as NSString) as String) : NSNumber(value: kCVPixelFormatType_32BGRA as UInt32)] // 3
+            
+            output.alwaysDiscardsLateVideoFrames = true
+            let queue = DispatchQueue(label: "myqueue")
+            output.setSampleBufferDelegate(self, queue: queue)
+            self._session.addOutput(output)
+            self._session.startRunning()
+            
+            CVMetalTextureCacheCreate(kCFAllocatorDefault, nil, mtl.processor.mtlDevice, nil, &videoTextureCache)
+        }
     }
     
     public required init(coder: NSCoder) {
@@ -253,34 +296,13 @@ class DaltonView: MTKView {
         
         fpsMonitor.tick()
         
-        if self.window == nil {
-            return;
-        }
         
-        let rawWindowId = self.window!.windowNumber
-        
-        if rawWindowId <= 0 {
-            NSLog("Invalid windowId \(rawWindowId)")
-            return;
-        }
-        
-        let windowId = CGWindowID(rawWindowId)
-        
-        let display = CGMainDisplayID()
-        let displayRect = CGDisplayBounds(display)
-        
-        // Capture a screeshot of the other windows.
-        var screenImage : CGImage? = CGWindowListCreateImage(displayRect,
-                                                             [CGWindowListOption.optionOnScreenOnly],
-                                                             // [CGWindowListOption.optionAll],
-                                                             windowId, // kCGNullWindowID?
-            []);
-        
-        if screenImage == nil {
-            return
-        }
-        
+<<<<<<< Updated upstream
         let mouseLocation = NSEvent.mouseLocation()
+=======
+        /*
+        let mouseLocation = NSEvent.mouseLocation
+>>>>>>> Stashed changes
         let screenToImageScale = Float(screenImage!.width)/Float(displayRect.width)
         let mouseInImage = CGPoint.init(x: mouseLocation.x,
                                         y: (displayRect.height-mouseLocation.y))
@@ -289,16 +311,20 @@ class DaltonView: MTKView {
         let cursorSRGBA = patchExtractor.rgbaValueNear(image:screenImage!,
                                                        p: mouseInImage,
                                                        screenToImageScale:CGFloat(screenToImageScale));
+ */
         
+        /*
         let uniformsBuffer = mtl.mtlRenderer.uniformsBuffer!;
         uniformsBuffer.pointee.underCursorRgba.0 = Float(cursorSRGBA.r)/255.0;
         uniformsBuffer.pointee.underCursorRgba.1 = Float(cursorSRGBA.g)/255.0;
         uniformsBuffer.pointee.underCursorRgba.2 = Float(cursorSRGBA.b)/255.0;
         uniformsBuffer.pointee.underCursorRgba.3 = Float(cursorSRGBA.a)/255.0;
         uniformsBuffer.pointee.frameCount = frameCount;
+        */
     
         // Keeping this around, but we're now using Metal.
-        let doCpuTransform = false;
+        //let doCpuTransform = false;
+        /*
         if (doCpuTransform)
         {
             screenImage = transformCGImage (inImage:screenImage!) {
@@ -306,20 +332,100 @@ class DaltonView: MTKView {
                 self.cpuProcessor.transformSrgbaBuffer(srgbaBuffer, width:Int32(width), height:Int32(height))
             }
         }
+ */
+        
+        /*
+        if sampleBuffer == nil {
+            return
+        }
+        
+        let pixelBuffer = CMSampleBufferGetImageBuffer(self.sampleBuffer!)
+        
+        var metalTextureRef: CVMetalTexture?
+        
+          
+        let yWidth = CVPixelBufferGetWidthOfPlane(pixelBuffer!, 0);
+        let yHeight = CVPixelBufferGetHeightOfPlane(pixelBuffer!, 0);
+        
+        if videoTextureCache == nil {
+
+            return
+        }
+                
+        CVMetalTextureCacheCreateTextureFromImage(kCFAllocatorDefault,
+              videoTextureCache!,
+              pixelBuffer!,
+              nil,
+              MTLPixelFormat.bgra8Unorm,
+              yWidth, yHeight, 0,
+              &metalTextureRef)
+        
+        let unwrappedImageTexture = metalTextureRef
+        let screenImageMTL = CVMetalTextureGetTexture(unwrappedImageTexture!)
         
         if let rpd = currentRenderPassDescriptor, let drawable = currentDrawable {
-            rpd.colorAttachments[0].clearColor = MTLClearColorMake(0.0, 0.0, 0.0, 1.0)
+            //rpd.colorAttachments[0].clearColor = MTLClearColorMake(0.0, 0.0, 0.0, 1.0)
             let commandBuffer = mtl.commandQueue.makeCommandBuffer()
             
-            mtl.mtlRenderer.render(withScreenImage: screenImage!,
+            mtl.mtlRenderer.render(withScreenImage: screenImageMTL,
                                    commandBuffer: commandBuffer,
                                    renderPassDescriptor: rpd);
             
             commandBuffer.present(drawable)
             commandBuffer.commit()
         }
+        */
+ 
         
         frameCount = frameCount + 1;
+    }
+    
+    func captureOutput(_ output: AVCaptureOutput, didOutput inSampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
+        
+        self.sampleBuffer = inSampleBuffer
+
+        
+        if self.sampleBuffer == nil {
+            return
+        }
+        
+        let pixelBuffer = CMSampleBufferGetImageBuffer(self.sampleBuffer!)
+        
+        var metalTextureRef: CVMetalTexture?
+        
+          
+        let yWidth = CVPixelBufferGetWidthOfPlane(pixelBuffer!, 0);
+        let yHeight = CVPixelBufferGetHeightOfPlane(pixelBuffer!, 0);
+        
+        if videoTextureCache == nil {
+
+            return
+        }
+                
+        CVMetalTextureCacheCreateTextureFromImage(kCFAllocatorDefault,
+              videoTextureCache!,
+              pixelBuffer!,
+              nil,
+              MTLPixelFormat.bgra8Unorm,
+              yWidth, yHeight, 0,
+              &metalTextureRef)
+        
+        let unwrappedImageTexture = metalTextureRef
+        let screenImageMTL = CVMetalTextureGetTexture(unwrappedImageTexture!)
+        
+        if let rpd = currentRenderPassDescriptor, let drawable = currentDrawable {
+            //rpd.colorAttachments[0].clearColor = MTLClearColorMake(0.0, 0.0, 0.0, 1.0)
+            let commandBuffer = mtl.commandQueue.makeCommandBuffer()
+            
+            mtl.mtlRenderer.render(withScreenImage: screenImageMTL,
+                                   commandBuffer: commandBuffer,
+                                   renderPassDescriptor: rpd);
+            
+            commandBuffer!.present(drawable)
+            commandBuffer!.commit()
+        }
+        
+        
     }
     
 }
