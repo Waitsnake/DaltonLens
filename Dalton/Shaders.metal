@@ -301,9 +301,49 @@ float4 applyProtanomalyRgb (float4 srgba)
      */
     
     float4 srgbaTransformed = srgba;
-    srgbaTransformed[0] = 0.81667*srgba[0] + 0.18333*srgba[1] +   0.0*srgba[2];
-    srgbaTransformed[1] = 0.33333*srgba[0] + 0.66667*srgba[1] +   0.0*srgba[2];
-    srgbaTransformed[2] =     0.0*srgba[0] + 0.125  *srgba[1] + 0.875*srgba[2];
+    
+    
+    /* 0
+        srgbaTransformed[0] = 1*srgba[0] + 0*srgba[1] + 0*srgba[2];
+        srgbaTransformed[1] = 0*srgba[0] + 1*srgba[1] + 0*srgba[2];
+        srgbaTransformed[2] = 0*srgba[0] + 0*srgba[1] + 1*srgba[2];
+    */
+                
+    /* 1
+        srgbaTransformed[0] =  0.856167*srgba[0] +  0.182038*srgba[1] + -0.038205*srgba[2];
+        srgbaTransformed[1] =  0.029342*srgba[0] +  0.955115*srgba[1] +  0.015544*srgba[2];
+        srgbaTransformed[2] = -0.002880*srgba[0] + -0.001563*srgba[1] +  1.004443*srgba[2];
+    */
+
+    /* 2
+        srgbaTransformed[0] =  0.734766*srgba[0] +  0.334872*srgba[1] + -0.069637*srgba[2];
+        srgbaTransformed[1] =  0.051840*srgba[0] +  0.919198*srgba[1] +  0.028963*srgba[2];
+        srgbaTransformed[2] = -0.004928*srgba[0] + -0.004209*srgba[1] +  1.009137*srgba[2];
+    */
+        
+    /* 3*/
+        srgbaTransformed[0] =  0.630323*srgba[0] +  0.465641*srgba[1] + -0.095964*srgba[2];
+        srgbaTransformed[1] =  0.069181*srgba[0] +  0.890046*srgba[1] +  0.040773*srgba[2];
+        srgbaTransformed[2] = -0.006308*srgba[0] + -0.007724*srgba[1] +  1.014032*srgba[2];
+    /**/
+
+    /* 4
+    srgbaTransformed[0] =  0.539009*srgba[0] +  0.579343*srgba[1] + -0.118352*srgba[2];
+    srgbaTransformed[1] =  0.082546*srgba[0] +  0.866121*srgba[1] +  0.051332*srgba[2];
+    srgbaTransformed[2] = -0.007136*srgba[0] + -0.011959*srgba[1] +  1.019095*srgba[2];
+     */
+    
+    /* 5
+    srgbaTransformed[0] =  0.458064*srgba[0] +  0.679578*srgba[1] + -0.137642*srgba[2];
+    srgbaTransformed[1] =  0.092785*srgba[0] +  0.846313*srgba[1] +  0.060902*srgba[2];
+    srgbaTransformed[2] = -0.007494*srgba[0] + -0.016807*srgba[1] +  1.024301*srgba[2];
+    */
+        
+    /* 10
+    srgbaTransformed[0] =  0.152286*srgba[0] +  1.052583*srgba[1] + -0.204868*srgba[2];
+    srgbaTransformed[1] =  0.114503*srgba[0] +  0.786281*srgba[1] +  0.099216*srgba[2];
+    srgbaTransformed[2] = -0.003882*srgba[0] + -0.048116*srgba[1] +  1.051998*srgba[2];
+    */
     srgbaTransformed[3] =                                                       1.0*srgba[3];
     return srgbaTransformed;
 }
@@ -388,12 +428,22 @@ float4 daltonizeV1 (float4 srgba, float4 srgbaSimulated)
 {
     float3 error = srgba.rgb - srgbaSimulated.rgb;
     
-    float updatedG = srgba.g + 0.7*error.r + 1.0*error.g + 0.0*error.b;
-    float updatedB = srgba.b + 0.7*error.r + 0.0*error.g + 1.0*error.b;
+    /*
+    float updatedR = srgba.r + 0.7*error.r;
+    float updatedG = srgba.g + 0.4*error.r + 1.0*error.g + 0.0*error.b;
+    float updatedB = srgba.b + 0.1*error.r + 0.0*error.g + 1.0*error.b;
+     */
+    
+    float updatedR = srgba.r + 1.0*error.r;
+    float updatedG = srgba.g + 1.0*error.g;
+    float updatedB = srgba.b + 1.0*error.b;
     
     float4 srgbaOut = srgba;
+    srgbaOut.r = clamp(updatedR, 0.0, 1.0);
     srgbaOut.g = clamp(updatedG, 0.0, 1.0);
     srgbaOut.b = clamp(updatedB, 0.0, 1.0);
+
+    
     return srgbaOut;
 }
 
