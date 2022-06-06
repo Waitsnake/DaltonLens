@@ -4,6 +4,8 @@
 // of the BSD license.  See the LICENSE file for details.
 //
 
+#undef USE_ONE_NIGHT_HACK
+
 #include <metal_stdlib>
 using namespace metal;
 
@@ -27,8 +29,8 @@ float3 applyDeuteranope (float3 lms);
 float3 applyTritanope (float3 lms);
 
 float4 applyProtanomalyRgb (float4 srgba, int severity);
-float4 applyDeuteranomalyRgb (float4 srgba);
-float4 applyTritanomalyRgb (float4 srgba);
+float4 applyDeuteranomalyRgb (float4 srgba, int severity);
+float4 applyTritanomalyRgb (float4 srgba, int severity);
 
 float4 daltonizeV1 (float4 srgba, float4 srgbaSimulated);
 
@@ -281,14 +283,11 @@ float3 applyTritanope (float3 lms)
 
 float4 applyProtanomalyRgb (float4 srgba, int severity)
 {
-    /* TODO
-     I really would like to do Protanomaly, Deuteranomaly and Tritanomaly in LMS Space instead of RGB Space,
-     but I could not find in any publication the Matrix values of those for LMS Space(?).
-     All LMS Space publications only show Protanopia, Deuteranopia and Tritanopia and have copied the same values from each other.
-     And I could not figure out how to calulate the missing LMS Space values? In RGB Space the values are easier to understand
-     and I could easly simulate different levels of Color Defects.
-     
-     Some Matrix values for Color Defects in RGB Space (https://phabricator.kde.org/T2395Protanomaly):
+    float4 srgbaTransformed = srgba;
+
+#ifdef USE_ONE_NIGHT_HACK
+    /*
+      Matrix values for Color Defects in RGB Space "Color-Matrix" by www.colorjack.com (the "one-night hack") https://web.archive.org/web/20081014161121/http://www.colorjack.com/labs/colormatrix/
      
      'Normal':[1,0,0,0,0, 0,1,0,0,0, 0,0,1,0,0, 0,0,0,1,0, 0,0,0,0,1],
      'Protanopia':[0.567,0.433,0,0,0, 0.558,0.442,0,0,0, 0,0.242,0.758,0,0, 0,0,0,1,0, 0,0,0,0,1],
@@ -301,11 +300,21 @@ float4 applyProtanomalyRgb (float4 srgba, int severity)
      'Achromatomaly':[0.618,0.320,0.062,0,0, 0.163,0.775,0.062,0,0, 0.163,0.320,0.516,0,0
      */
     
-    float4 srgbaTransformed = srgba;
+    // from "Color-Matrix" by www.colorjack.com
+    // it is said that the "one-night hack" should not be used any more
+    srgbaTransformed[0] = 0.817*srgba[0] + 0.183*srgba[1] +   0.0*srgba[2];
+    srgbaTransformed[1] = 0.333*srgba[0] + 0.667*srgba[1] +   0.0*srgba[2];
+    srgbaTransformed[2] =   0.0*srgba[0] + 0.125*srgba[1] + 0.875*srgba[2];
     
-    // those values for different protanomaly CVD severity levels are from Machado CVD
-    // https://github.com/mpetroff/color-sets/blob/master/color_conversions.py
+#else
     
+    /*
+    values for different CVD severity levels are from Machado CVD
+     https://github.com/mpetroff/color-sets/blob/master/color_conversions.py
+     https://www.inf.ufrgs.br/~oliveira/pubs_files/CVD_Simulation/CVD_Simulation.html
+     */
+    
+    // Machado with severity levels for protanomaly
     switch (severity)
     {
         case 0:
@@ -375,28 +384,194 @@ float4 applyProtanomalyRgb (float4 srgba, int severity)
             srgbaTransformed[2] = -0.003882*srgba[0] + -0.048116*srgba[1] +  1.051998*srgba[2];
             break;
             
+        default:
+            srgbaTransformed[0] = 1*srgba[0] + 0*srgba[1] + 0*srgba[2];
+            srgbaTransformed[1] = 0*srgba[0] + 1*srgba[1] + 0*srgba[2];
+            srgbaTransformed[2] = 0*srgba[0] + 0*srgba[1] + 1*srgba[2];
+            break;
     }
+#endif
     
     srgbaTransformed[3] =                                                       1.0*srgba[3];
     return srgbaTransformed;
 }
 
-float4 applyDeuteranomalyRgb (float4 srgba)
+float4 applyDeuteranomalyRgb (float4 srgba, int severity)
 {
     float4 srgbaTransformed = srgba;
+#ifdef USE_ONE_NIGHT_HACK
+    // from "Color-Matrix" by www.colorjack.com
+    // it is said that the "one-night hack" should not be used any more
     srgbaTransformed[0] =   0.8*srgba[0] +   0.2*srgba[1] +   0.0*srgba[2];
     srgbaTransformed[1] = 0.258*srgba[0] + 0.742*srgba[1] +   0.0*srgba[2];
     srgbaTransformed[2] =   0.0*srgba[0] + 0.142*srgba[1] + 0.858*srgba[2];
+#else
+    // Machado with severity levels for deuteranomaly
+    switch (severity)
+    {
+        case 0:
+            srgbaTransformed[0] = 1*srgba[0] + 0*srgba[1] + 0*srgba[2];
+            srgbaTransformed[1] = 0*srgba[0] + 1*srgba[1] + 0*srgba[2];
+            srgbaTransformed[2] = 0*srgba[0] + 0*srgba[1] + 1*srgba[2];
+            break;
+                
+        case 1:
+            srgbaTransformed[0] =  0.866435*srgba[0] +  0.177704*srgba[1] + -0.044139*srgba[2];
+            srgbaTransformed[1] =  0.049567*srgba[0] +  0.939063*srgba[1] +  0.011370*srgba[2];
+            srgbaTransformed[2] = -0.003453*srgba[0] +  0.007233*srgba[1] +  0.996220*srgba[2];
+            break;
+    
+        case 2:
+            srgbaTransformed[0] =  0.760729*srgba[0] +  0.319078*srgba[1] + -0.079807*srgba[2];
+            srgbaTransformed[1] =  0.090568*srgba[0] +  0.889315*srgba[1] +  0.020117*srgba[2];
+            srgbaTransformed[2] = -0.006027*srgba[0] +  0.013325*srgba[1] +  0.992702*srgba[2];
+            break;
+
+        case 3:
+            srgbaTransformed[0] =  0.675425*srgba[0] +  0.433850*srgba[1] + -0.109275*srgba[2];
+            srgbaTransformed[1] =  0.125303*srgba[0] +  0.847755*srgba[1] +  0.026942*srgba[2];
+            srgbaTransformed[2] = -0.007950*srgba[0] +  0.018572*srgba[1] +  0.989378*srgba[2];
+            break;
+
+        case 4:
+            srgbaTransformed[0] =  0.605511*srgba[0] +  0.528560*srgba[1] + -0.134071*srgba[2];
+            srgbaTransformed[1] =  0.155318*srgba[0] +  0.812366*srgba[1] +  0.032316*srgba[2];
+            srgbaTransformed[2] = -0.009376*srgba[0] +  0.023176*srgba[1] +  0.986200*srgba[2];
+            break;
+    
+        case 5:
+            srgbaTransformed[0] =  0.547494*srgba[0] +  0.607765*srgba[1] + -0.155259*srgba[2];
+            srgbaTransformed[1] =  0.181692*srgba[0] +  0.781742*srgba[1] +  0.036566*srgba[2];
+            srgbaTransformed[2] = -0.010410*srgba[0] +  0.027275*srgba[1] +  0.983136*srgba[2];
+            break;
+        
+        case 6:
+            srgbaTransformed[0] =  0.498864*srgba[0] +  0.674741*srgba[1] + -0.173604*srgba[2];
+            srgbaTransformed[1] =  0.205199*srgba[0] +  0.754872*srgba[1] +  0.039929*srgba[2];
+            srgbaTransformed[2] = -0.011131*srgba[0] +  0.030969*srgba[1] +  0.980162*srgba[2];
+            break;
+    
+        case 7:
+            srgbaTransformed[0] =  0.457771*srgba[0] +  0.731899*srgba[1] + -0.189670*srgba[2];
+            srgbaTransformed[1] =  0.226409*srgba[0] +  0.731012*srgba[1] +  0.042579*srgba[2];
+            srgbaTransformed[2] = -0.011595*srgba[0] +  0.034333*srgba[1] +  0.977261*srgba[2];
+            break;
+    
+        case 8:
+            srgbaTransformed[0] =  0.422823*srgba[0] +  0.781057*srgba[1] + -0.203881*srgba[2];
+            srgbaTransformed[1] =  0.245752*srgba[0] +  0.709602*srgba[1] +  0.044646*srgba[2];
+            srgbaTransformed[2] = -0.011843*srgba[0] +  0.037423*srgba[1] +  0.974421*srgba[2];
+            break;
+
+        case 9:
+            srgbaTransformed[0] =  0.392952*srgba[0] +  0.823610*srgba[1] + -0.216562*srgba[2];
+            srgbaTransformed[1] =  0.263559*srgba[0] +  0.690210*srgba[1] +  0.046232*srgba[2];
+            srgbaTransformed[2] = -0.011910*srgba[0] +  0.040281*srgba[1] +  0.971630*srgba[2];
+            break;
+    
+        case 10:
+            srgbaTransformed[0] =  0.367322*srgba[0] +  0.860646*srgba[1] + -0.227968*srgba[2];
+            srgbaTransformed[1] =  0.280085*srgba[0] +  0.672501*srgba[1] +  0.047413*srgba[2];
+            srgbaTransformed[2] = -0.011820*srgba[0] +  0.042940*srgba[1] +  0.968881*srgba[2];
+            break;
+        
+        default:
+            srgbaTransformed[0] = 1*srgba[0] + 0*srgba[1] + 0*srgba[2];
+            srgbaTransformed[1] = 0*srgba[0] + 1*srgba[1] + 0*srgba[2];
+            srgbaTransformed[2] = 0*srgba[0] + 0*srgba[1] + 1*srgba[2];
+            break;
+    }
+#endif
     srgbaTransformed[3] =                                                   1.0*srgba[3];
     return srgbaTransformed;
 }
 
-float4 applyTritanomalyRgb (float4 srgba)
+float4 applyTritanomalyRgb (float4 srgba, int severity)
 {
     float4 srgbaTransformed = srgba;
+#ifdef USE_ONE_NIGHT_HACK
+    // from "Color-Matrix" by www.colorjack.com
+    // it is said that the "one-night hack" should not be used any more
     srgbaTransformed[0] = 0.967*srgba[0] + 0.033*srgba[1] +   0.0*srgba[2];
     srgbaTransformed[1] =   0.0*srgba[0] + 0.733*srgba[1] + 0.267*srgba[2];
     srgbaTransformed[2] =   0.0*srgba[0] + 0.183*srgba[1] + 0.817*srgba[2];
+#else
+    // Machado with severity levels for tritanomaly
+    switch (severity)
+    {
+        case 0:
+            srgbaTransformed[0] = 1*srgba[0] + 0*srgba[1] + 0*srgba[2];
+            srgbaTransformed[1] = 0*srgba[0] + 1*srgba[1] + 0*srgba[2];
+            srgbaTransformed[2] = 0*srgba[0] + 0*srgba[1] + 1*srgba[2];
+            break;
+                
+        case 1:
+            srgbaTransformed[0] =  0.926670*srgba[0] +  0.092514*srgba[1] + -0.019184*srgba[2];
+            srgbaTransformed[1] =  0.021191*srgba[0] +  0.964503*srgba[1] +  0.014306*srgba[2];
+            srgbaTransformed[2] =  0.008437*srgba[0] +  0.054813*srgba[1] +  0.936750*srgba[2];
+            break;
+    
+        case 2:
+            srgbaTransformed[0] =  0.895720*srgba[0] +  0.133330*srgba[1] + -0.029050*srgba[2];
+            srgbaTransformed[1] =  0.029997*srgba[0] +  0.945400*srgba[1] +  0.024603*srgba[2];
+            srgbaTransformed[2] =  0.013027*srgba[0] +  0.104707*srgba[1] +  0.882266*srgba[2];
+            break;
+
+        case 3:
+            srgbaTransformed[0] =  0.905871*srgba[0] +  0.127791*srgba[1] + -0.033662*srgba[2];
+            srgbaTransformed[1] =  0.026856*srgba[0] +  0.941251*srgba[1] +  0.031893*srgba[2];
+            srgbaTransformed[2] =  0.013410*srgba[0] +  0.148296*srgba[1] +  0.838294*srgba[2];
+            break;
+
+        case 4:
+            srgbaTransformed[0] =  0.948035*srgba[0] +  0.089490*srgba[1] + -0.037526*srgba[2];
+            srgbaTransformed[1] =  0.014364*srgba[0] +  0.946792*srgba[1] +  0.038844*srgba[2];
+            srgbaTransformed[2] =  0.010853*srgba[0] +  0.193991*srgba[1] +  0.795156*srgba[2];
+            break;
+    
+        case 5:
+            srgbaTransformed[0] =  1.017277*srgba[0] +  0.027029*srgba[1] + -0.044306*srgba[2];
+            srgbaTransformed[1] = -0.006113*srgba[0] +  0.958479*srgba[1] +  0.047634*srgba[2];
+            srgbaTransformed[2] =  0.006379*srgba[0] +  0.248708*srgba[1] +  0.744913*srgba[2];
+            break;
+        
+        case 6:
+            srgbaTransformed[0] =  1.104996*srgba[0] + -0.046633*srgba[1] + -0.058363*srgba[2];
+            srgbaTransformed[1] = -0.032137*srgba[0] +  0.971635*srgba[1] +  0.060503*srgba[2];
+            srgbaTransformed[2] =  0.001336*srgba[0] +  0.317922*srgba[1] +  0.680742*srgba[2];
+            break;
+    
+        case 7:
+            srgbaTransformed[0] =  1.193214*srgba[0] + -0.109812*srgba[1] + -0.083402*srgba[2];
+            srgbaTransformed[1] = -0.058496*srgba[0] +  0.979410*srgba[1] +  0.079086*srgba[2];
+            srgbaTransformed[2] = -0.002346*srgba[0] +  0.403492*srgba[1] +  0.598854*srgba[2];
+            break;
+    
+        case 8:
+            srgbaTransformed[0] =  1.257728*srgba[0] + -0.139648*srgba[1] + -0.118081*srgba[2];
+            srgbaTransformed[1] = -0.078003*srgba[0] +  0.975409*srgba[1] +  0.102594*srgba[2];
+            srgbaTransformed[2] = -0.003316*srgba[0] +  0.501214*srgba[1] +  0.502102*srgba[2];
+            break;
+
+        case 9:
+            srgbaTransformed[0] =  1.278864*srgba[0] + -0.125333*srgba[1] + -0.153531*srgba[2];
+            srgbaTransformed[1] = -0.084748*srgba[0] +  0.957674*srgba[1] +  0.127074*srgba[2];
+            srgbaTransformed[2] = -0.000989*srgba[0] +  0.601151*srgba[1] +  0.399838*srgba[2];
+            break;
+    
+        case 10:
+            srgbaTransformed[0] =  1.255528*srgba[0] + -0.076749*srgba[1] + -0.178779*srgba[2];
+            srgbaTransformed[1] = -0.078411*srgba[0] +  0.930809*srgba[1] +  0.147602*srgba[2];
+            srgbaTransformed[2] =  0.004733*srgba[0] +  0.691367*srgba[1] +  0.303900*srgba[2];
+            break;
+            
+        default:
+            srgbaTransformed[0] = 1*srgba[0] + 0*srgba[1] + 0*srgba[2];
+            srgbaTransformed[1] = 0*srgba[0] + 1*srgba[1] + 0*srgba[2];
+            srgbaTransformed[2] = 0*srgba[0] + 0*srgba[1] + 1*srgba[2];
+            break;
+    }
+#endif
     srgbaTransformed[3] =                                                   1.0*srgba[3];
     return srgbaTransformed;
 }
@@ -443,18 +618,20 @@ fragment float4 fragment_simulateDaltonism_protanomaly(VertexOut vert [[stage_in
 }
 
 fragment float4 fragment_simulateDaltonism_deuteranomaly(VertexOut vert [[stage_in]],
-                                                         texture2d<float> screenTexture [[texture(0)]])
+                                                         texture2d<float> screenTexture [[texture(0)]],
+                                                         constant Uniforms &uniforms [[buffer(0)]])
 {
     float4 srgba = screenTexture.sample(defaultSampler, vert.texCoords);
-    float4 srgbaOut = applyDeuteranomalyRgb(srgba);
+    float4 srgbaOut = applyDeuteranomalyRgb(srgba,uniforms.severity);
     return srgbaOut;
 }
 
 fragment float4 fragment_simulateDaltonism_tritanomaly(VertexOut vert [[stage_in]],
-                                                       texture2d<float> screenTexture [[texture(0)]])
+                                                       texture2d<float> screenTexture [[texture(0)]],
+                                                       constant Uniforms &uniforms [[buffer(0)]])
 {
     float4 srgba = screenTexture.sample(defaultSampler, vert.texCoords);
-    float4 srgbaOut = applyTritanomalyRgb(srgba);
+    float4 srgbaOut = applyTritanomalyRgb(srgba,uniforms.severity);
     return srgbaOut;
 }
 
@@ -534,19 +711,21 @@ fragment float4 fragment_daltonizeV1_protanomaly(VertexOut vert [[stage_in]],
 }
 
 fragment float4 fragment_daltonizeV1_deuteranomaly(VertexOut vert [[stage_in]],
-                                                   texture2d<float> screenTexture [[texture(0)]])
+                                                   texture2d<float> screenTexture [[texture(0)]],
+                                                   constant Uniforms &uniforms [[buffer(0)]])
 {
     float4 srgba = screenTexture.sample(defaultSampler, vert.texCoords);
-    float4 srgbaSimulated = applyDeuteranomalyRgb(srgba);
+    float4 srgbaSimulated = applyDeuteranomalyRgb(srgba,uniforms.severity);
     float4 srgbaOut = daltonizeV1(srgba, srgbaSimulated);
     return srgbaOut;
 }
 
 fragment float4 fragment_daltonizeV1_tritanomaly(VertexOut vert [[stage_in]],
-                                                 texture2d<float> screenTexture [[texture(0)]])
+                                                 texture2d<float> screenTexture [[texture(0)]],
+                                                 constant Uniforms &uniforms [[buffer(0)]])
 {
     float4 srgba = screenTexture.sample(defaultSampler, vert.texCoords);
-    float4 srgbaSimulated = applyTritanomalyRgb(srgba);
+    float4 srgbaSimulated = applyTritanomalyRgb(srgba,uniforms.severity);
     float4 srgbaOut = daltonizeV1(srgba, srgbaSimulated);
     return srgbaOut;
 }
