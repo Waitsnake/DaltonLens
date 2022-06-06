@@ -52,31 +52,35 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     let simulateMenuItem = NSMenuItem(title: "Simulate Blindness",
                                       action: #selector(AppDelegate.setProcessingMode(sender:)),
-                                      keyEquivalent: "")
+                                      keyEquivalent: "3")
     
     let daltonizeV1MenuItem = NSMenuItem(title: "Daltonize Correction",
                                          action: #selector(AppDelegate.setProcessingMode(sender:)),
                                          keyEquivalent: "1")
     
-    let switchRedBlueMenuItem = NSMenuItem(title: "Switch Red Blue",
+    let switchToggleSeverityMenuItem = NSMenuItem(title: "Toggle Severity",
                                            action: #selector(AppDelegate.setProcessingMode(sender:)),
                                            keyEquivalent: "2")
     
+    let switchRedBlueMenuItem = NSMenuItem(title: "Switch Red Blue",
+                                           action: #selector(AppDelegate.setProcessingMode(sender:)),
+                                           keyEquivalent: "4")
+    
     let switchAndFlipRedBlueMenuItem = NSMenuItem(title: "Switch And Flip Red Blue",
                                                   action: #selector(AppDelegate.setProcessingMode(sender:)),
-                                                  keyEquivalent: "3")
+                                                  keyEquivalent: "5")
     
     let invertLightnessMenuItem = NSMenuItem(title: "Invert Lightness",
                                                   action: #selector(AppDelegate.setProcessingMode(sender:)),
-                                                  keyEquivalent: "4")
+                                                  keyEquivalent: "6")
     
     let highlightColorUnderMouseMenuItem = NSMenuItem(title: "Highlight Similar Color Under Cursor",
                                                       action: #selector(AppDelegate.setProcessingMode(sender:)),
-                                                      keyEquivalent: "8")
+                                                      keyEquivalent: "7")
     
     let highlightExactColorUnderMouseMenuItem = NSMenuItem(title: "Highlight Exact Color Under Cursor",
                                                       action: #selector(AppDelegate.setProcessingMode(sender:)),
-                                                      keyEquivalent: "9")
+                                                      keyEquivalent: "8")
     
     var menuItemsToProcessingMode : [NSMenuItem: DLProcessingMode];
     var processingModeToMenuItem : [UInt32: NSMenuItem];
@@ -93,6 +97,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         nothingMenuItem.keyEquivalentModifierMask = cmdAltCtrlMask
         daltonizeV1MenuItem.keyEquivalentModifierMask = cmdAltCtrlMask
+        switchToggleSeverityMenuItem.keyEquivalentModifierMask = cmdAltCtrlMask
+        simulateMenuItem.keyEquivalentModifierMask = cmdAltCtrlMask
         switchRedBlueMenuItem.keyEquivalentModifierMask = cmdAltCtrlMask
         switchAndFlipRedBlueMenuItem.keyEquivalentModifierMask = cmdAltCtrlMask
         invertLightnessMenuItem.keyEquivalentModifierMask = cmdAltCtrlMask
@@ -101,8 +107,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         menuItemsToProcessingMode = [
             nothingMenuItem: Nothing,
-            simulateMenuItem: SimulateDaltonism,
             daltonizeV1MenuItem: DaltonizeV1,
+            switchToggleSeverityMenuItem: ToogleSeverity,
+            simulateMenuItem: SimulateDaltonism,
             switchRedBlueMenuItem: SwitchCbCr,
             switchAndFlipRedBlueMenuItem: SwitchAndFlipCbCr,
             invertLightnessMenuItem: InvertLightness,
@@ -208,7 +215,25 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         if let dview = daltonView {
             
-            if let processingType = menuItemsToProcessingMode[sender] {
+            if sender == switchToggleSeverityMenuItem
+            {
+                if dview.severity >= 10
+                {
+                    dview.severity = 0
+                }
+                else
+                {
+                    dview.severity = dview.severity + 1
+                }
+            }
+            else if let processingType = menuItemsToProcessingMode[sender] {
+                
+                // set default severity when enabling it to 5
+                if sender == daltonizeV1MenuItem
+                {
+                    dview.severity = 5
+                }
+                
                 dview.processingMode = processingType
                 dview.needsDisplay = true
                 
@@ -322,19 +347,25 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let shortcutDaltonizeV1 = MASShortcut(keyCode:UInt(kVK_ANSI_1),
                                               modifierFlags:UInt(cmdControlAlt));
         
-        let shortcutSwitchRedBlue = MASShortcut(keyCode:UInt(kVK_ANSI_2),
+        let shortcutToggleSeverity = MASShortcut(keyCode:UInt(kVK_ANSI_2),
+                                              modifierFlags:UInt(cmdControlAlt));
+        
+        let shortcutSimulate = MASShortcut(keyCode:UInt(kVK_ANSI_3),
                                                 modifierFlags:UInt(cmdControlAlt));
         
-        let shortcutSwitchAndFlipRedBlue = MASShortcut(keyCode:UInt(kVK_ANSI_3),
+        let shortcutSwitchRedBlue = MASShortcut(keyCode:UInt(kVK_ANSI_4),
+                                                modifierFlags:UInt(cmdControlAlt));
+        
+        let shortcutSwitchAndFlipRedBlue = MASShortcut(keyCode:UInt(kVK_ANSI_5),
                                                        modifierFlags:UInt(cmdControlAlt));
         
-        let shortcutInvertLightness = MASShortcut(keyCode:UInt(kVK_ANSI_4),
+        let shortcutInvertLightness = MASShortcut(keyCode:UInt(kVK_ANSI_6),
                                                   modifierFlags:UInt(cmdControlAlt));
         
-        let shortcutHighlightColorUnderMouse = MASShortcut(keyCode:UInt(kVK_ANSI_8),
+        let shortcutHighlightColorUnderMouse = MASShortcut(keyCode:UInt(kVK_ANSI_7),
                                                            modifierFlags:UInt(cmdControlAlt));
         
-        let shortcutHighlightExactColorUnderMouse = MASShortcut(keyCode:UInt(kVK_ANSI_9),
+        let shortcutHighlightExactColorUnderMouse = MASShortcut(keyCode:UInt(kVK_ANSI_8),
                                                                 modifierFlags:UInt(cmdControlAlt));
         
         let shortcutUp = MASShortcut(keyCode:UInt(kVK_UpArrow),
@@ -372,6 +403,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         MASShortcutMonitor.shared().register(shortcutDaltonizeV1) {
             updateProcessingMode() {prevMode in
                 return DaltonizeV1
+            };
+        }
+        
+        MASShortcutMonitor.shared().register(shortcutToggleSeverity) {
+            updateProcessingMode() {prevMode in
+                return ToogleSeverity
+            };
+        }
+        
+        MASShortcutMonitor.shared().register(shortcutSimulate) {
+            updateProcessingMode() {prevMode in
+                return SimulateDaltonism
             };
         }
         

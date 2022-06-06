@@ -190,6 +190,8 @@ class DaltonView: MTKView {
     
     private var frameCount : Int32 = 0
     
+    public var severity : Int32 = 5
+    
     struct MetalData {
 
         let mtlRenderer : DLMetalRenderer
@@ -296,6 +298,7 @@ class DaltonView: MTKView {
         uniformsBuffer.pointee.underCursorRgba.2 = Float(cursorSRGBA.b)/255.0;
         uniformsBuffer.pointee.underCursorRgba.3 = Float(cursorSRGBA.a)/255.0;
         uniformsBuffer.pointee.frameCount = frameCount;
+        uniformsBuffer.pointee.severity = severity;
     
         // Keeping this around, but we're now using Metal.
         let doCpuTransform = false;

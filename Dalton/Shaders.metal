@@ -26,7 +26,7 @@ float3 applyProtanope (float3 lms);
 float3 applyDeuteranope (float3 lms);
 float3 applyTritanope (float3 lms);
 
-float4 applyProtanomalyRgb (float4 srgba);
+float4 applyProtanomalyRgb (float4 srgba, int severity);
 float4 applyDeuteranomalyRgb (float4 srgba);
 float4 applyTritanomalyRgb (float4 srgba);
 
@@ -49,6 +49,7 @@ struct Uniforms
 {
     float4 srgbaUnderCursor;
     int frameCount; // for animations
+    int severity;
 };
 
 struct VertexIn
@@ -278,7 +279,7 @@ float3 applyTritanope (float3 lms)
     return lmsTransformed;
 }
 
-float4 applyProtanomalyRgb (float4 srgba)
+float4 applyProtanomalyRgb (float4 srgba, int severity)
 {
     /* TODO
      I really would like to do Protanomaly, Deuteranomaly and Tritanomaly in LMS Space instead of RGB Space,
@@ -302,48 +303,80 @@ float4 applyProtanomalyRgb (float4 srgba)
     
     float4 srgbaTransformed = srgba;
     
+    // those values for different protanomaly CVD severity levels are from Machado CVD
+    // https://github.com/mpetroff/color-sets/blob/master/color_conversions.py
     
-    /* 0
-        srgbaTransformed[0] = 1*srgba[0] + 0*srgba[1] + 0*srgba[2];
-        srgbaTransformed[1] = 0*srgba[0] + 1*srgba[1] + 0*srgba[2];
-        srgbaTransformed[2] = 0*srgba[0] + 0*srgba[1] + 1*srgba[2];
-    */
+    switch (severity)
+    {
+        case 0:
+            srgbaTransformed[0] = 1*srgba[0] + 0*srgba[1] + 0*srgba[2];
+            srgbaTransformed[1] = 0*srgba[0] + 1*srgba[1] + 0*srgba[2];
+            srgbaTransformed[2] = 0*srgba[0] + 0*srgba[1] + 1*srgba[2];
+            break;
                 
-    /* 1
-        srgbaTransformed[0] =  0.856167*srgba[0] +  0.182038*srgba[1] + -0.038205*srgba[2];
-        srgbaTransformed[1] =  0.029342*srgba[0] +  0.955115*srgba[1] +  0.015544*srgba[2];
-        srgbaTransformed[2] = -0.002880*srgba[0] + -0.001563*srgba[1] +  1.004443*srgba[2];
-    */
-
-    /* 2
-        srgbaTransformed[0] =  0.734766*srgba[0] +  0.334872*srgba[1] + -0.069637*srgba[2];
-        srgbaTransformed[1] =  0.051840*srgba[0] +  0.919198*srgba[1] +  0.028963*srgba[2];
-        srgbaTransformed[2] = -0.004928*srgba[0] + -0.004209*srgba[1] +  1.009137*srgba[2];
-    */
-        
-    /* 3*/
-        srgbaTransformed[0] =  0.630323*srgba[0] +  0.465641*srgba[1] + -0.095964*srgba[2];
-        srgbaTransformed[1] =  0.069181*srgba[0] +  0.890046*srgba[1] +  0.040773*srgba[2];
-        srgbaTransformed[2] = -0.006308*srgba[0] + -0.007724*srgba[1] +  1.014032*srgba[2];
-    /**/
-
-    /* 4
-    srgbaTransformed[0] =  0.539009*srgba[0] +  0.579343*srgba[1] + -0.118352*srgba[2];
-    srgbaTransformed[1] =  0.082546*srgba[0] +  0.866121*srgba[1] +  0.051332*srgba[2];
-    srgbaTransformed[2] = -0.007136*srgba[0] + -0.011959*srgba[1] +  1.019095*srgba[2];
-     */
+        case 1:
+            srgbaTransformed[0] =  0.856167*srgba[0] +  0.182038*srgba[1] + -0.038205*srgba[2];
+            srgbaTransformed[1] =  0.029342*srgba[0] +  0.955115*srgba[1] +  0.015544*srgba[2];
+            srgbaTransformed[2] = -0.002880*srgba[0] + -0.001563*srgba[1] +  1.004443*srgba[2];
+            break;
     
-    /* 5
-    srgbaTransformed[0] =  0.458064*srgba[0] +  0.679578*srgba[1] + -0.137642*srgba[2];
-    srgbaTransformed[1] =  0.092785*srgba[0] +  0.846313*srgba[1] +  0.060902*srgba[2];
-    srgbaTransformed[2] = -0.007494*srgba[0] + -0.016807*srgba[1] +  1.024301*srgba[2];
-    */
+        case 2:
+            srgbaTransformed[0] =  0.734766*srgba[0] +  0.334872*srgba[1] + -0.069637*srgba[2];
+            srgbaTransformed[1] =  0.051840*srgba[0] +  0.919198*srgba[1] +  0.028963*srgba[2];
+            srgbaTransformed[2] = -0.004928*srgba[0] + -0.004209*srgba[1] +  1.009137*srgba[2];
+            break;
+
         
-    /* 10
-    srgbaTransformed[0] =  0.152286*srgba[0] +  1.052583*srgba[1] + -0.204868*srgba[2];
-    srgbaTransformed[1] =  0.114503*srgba[0] +  0.786281*srgba[1] +  0.099216*srgba[2];
-    srgbaTransformed[2] = -0.003882*srgba[0] + -0.048116*srgba[1] +  1.051998*srgba[2];
-    */
+        case 3:
+            srgbaTransformed[0] =  0.630323*srgba[0] +  0.465641*srgba[1] + -0.095964*srgba[2];
+            srgbaTransformed[1] =  0.069181*srgba[0] +  0.890046*srgba[1] +  0.040773*srgba[2];
+            srgbaTransformed[2] = -0.006308*srgba[0] + -0.007724*srgba[1] +  1.014032*srgba[2];
+            break;
+
+        case 4:
+            srgbaTransformed[0] =  0.539009*srgba[0] +  0.579343*srgba[1] + -0.118352*srgba[2];
+            srgbaTransformed[1] =  0.082546*srgba[0] +  0.866121*srgba[1] +  0.051332*srgba[2];
+            srgbaTransformed[2] = -0.007136*srgba[0] + -0.011959*srgba[1] +  1.019095*srgba[2];
+            break;
+    
+        case 5:
+            srgbaTransformed[0] =  0.458064*srgba[0] +  0.679578*srgba[1] + -0.137642*srgba[2];
+            srgbaTransformed[1] =  0.092785*srgba[0] +  0.846313*srgba[1] +  0.060902*srgba[2];
+            srgbaTransformed[2] = -0.007494*srgba[0] + -0.016807*srgba[1] +  1.024301*srgba[2];
+            break;
+        
+        case 6:
+            srgbaTransformed[0] =  0.385450*srgba[0] +  0.769005*srgba[1] + -0.154455*srgba[2];
+            srgbaTransformed[1] =  0.100526*srgba[0] +  0.829802*srgba[1] +  0.069673*srgba[2];
+            srgbaTransformed[2] = -0.007442*srgba[0] + -0.022190*srgba[1] +  1.029632*srgba[2];
+            break;
+    
+        case 7:
+            srgbaTransformed[0] =  0.319627*srgba[0] +  0.849633*srgba[1] + -0.169261*srgba[2];
+            srgbaTransformed[1] =  0.106241*srgba[0] +  0.815969*srgba[1] +  0.077790*srgba[2];
+            srgbaTransformed[2] = -0.007025*srgba[0] + -0.028051*srgba[1] +  1.035076*srgba[2];
+            break;
+    
+        case 8:
+            srgbaTransformed[0] =  0.259411*srgba[0] +  0.923008*srgba[1] + -0.182420*srgba[2];
+            srgbaTransformed[1] =  0.110296*srgba[0] +  0.804340*srgba[1] +  0.085364*srgba[2];
+            srgbaTransformed[2] = -0.006276*srgba[0] + -0.034346*srgba[1] +  1.040622*srgba[2];
+            break;
+
+        case 9:
+            srgbaTransformed[0] =  0.203876*srgba[0] +  0.990338*srgba[1] + -0.194214*srgba[2];
+            srgbaTransformed[1] =  0.112975*srgba[0] +  0.794542*srgba[1] +  0.092483*srgba[2];
+            srgbaTransformed[2] = -0.005222*srgba[0] + -0.041043*srgba[1] +  1.046265*srgba[2];
+            break;
+    
+        case 10:
+            srgbaTransformed[0] =  0.152286*srgba[0] +  1.052583*srgba[1] + -0.204868*srgba[2];
+            srgbaTransformed[1] =  0.114503*srgba[0] +  0.786281*srgba[1] +  0.099216*srgba[2];
+            srgbaTransformed[2] = -0.003882*srgba[0] + -0.048116*srgba[1] +  1.051998*srgba[2];
+            break;
+            
+    }
+    
     srgbaTransformed[3] =                                                       1.0*srgba[3];
     return srgbaTransformed;
 }
@@ -401,10 +434,11 @@ fragment float4 fragment_simulateDaltonism_tritanope(VertexOut vert [[stage_in]]
 }
 
 fragment float4 fragment_simulateDaltonism_protanomaly(VertexOut vert [[stage_in]],
-                                                       texture2d<float> screenTexture [[texture(0)]])
+                                                       texture2d<float> screenTexture [[texture(0)]],
+                                                       constant Uniforms &uniforms [[buffer(0)]])
 {
     float4 srgba = screenTexture.sample(defaultSampler, vert.texCoords);
-    float4 srgbaOut = applyProtanomalyRgb(srgba);
+    float4 srgbaOut = applyProtanomalyRgb(srgba,uniforms.severity);
     return srgbaOut;
 }
 
@@ -428,15 +462,24 @@ float4 daltonizeV1 (float4 srgba, float4 srgbaSimulated)
 {
     float3 error = srgba.rgb - srgbaSimulated.rgb;
     
-    /*
-    float updatedR = srgba.r + 0.7*error.r;
-    float updatedG = srgba.g + 0.4*error.r + 1.0*error.g + 0.0*error.b;
-    float updatedB = srgba.b + 0.1*error.r + 0.0*error.g + 1.0*error.b;
-     */
+    int useOrgDaltonize = 1;
     
-    float updatedR = srgba.r + 1.0*error.r;
-    float updatedG = srgba.g + 1.0*error.g;
-    float updatedB = srgba.b + 1.0*error.b;
+    float updatedR = 0;
+    float updatedG = 0;
+    float updatedB = 0;
+    
+    if (useOrgDaltonize == 1)
+    {
+        updatedR = srgba.r + 0.7*error.r;
+        updatedG = srgba.g + 0.4*error.r + 1.0*error.g + 0.0*error.b;
+        updatedB = srgba.b + 0.1*error.r + 0.0*error.g + 1.0*error.b;
+    }
+    else
+    {
+        updatedR = srgba.r + 1.0*error.r;
+        updatedG = srgba.g + 1.0*error.g;
+        updatedB = srgba.b + 1.0*error.b;
+    }
     
     float4 srgbaOut = srgba;
     srgbaOut.r = clamp(updatedR, 0.0, 1.0);
@@ -481,10 +524,11 @@ fragment float4 fragment_daltonizeV1_tritanope(VertexOut vert [[stage_in]],
 }
 
 fragment float4 fragment_daltonizeV1_protanomaly(VertexOut vert [[stage_in]],
-                                                 texture2d<float> screenTexture [[texture(0)]])
+                                                 texture2d<float> screenTexture [[texture(0)]],
+                                                 constant Uniforms &uniforms [[buffer(0)]])
 {
     float4 srgba = screenTexture.sample(defaultSampler, vert.texCoords);
-    float4 srgbaSimulated = applyProtanomalyRgb(srgba);
+    float4 srgbaSimulated = applyProtanomalyRgb(srgba,uniforms.severity);
     float4 srgbaOut = daltonizeV1(srgba, srgbaSimulated);
     return srgbaOut;
 }

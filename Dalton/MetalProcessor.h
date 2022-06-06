@@ -18,7 +18,8 @@ struct DLMetalUniforms
 {
     float underCursorRgba[4];
     int32_t frameCount;
-    int32_t padding[3];
+    int32_t severity;
+    int32_t padding[2];
 };
 
 @interface DLMetalProcessor : NSObject
