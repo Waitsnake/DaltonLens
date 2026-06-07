@@ -52,6 +52,10 @@ struct Uniforms
     float4 srgbaUnderCursor;
     int frameCount; // for animations
     int severity;
+    float dck16Severity;
+    float dck16RG;
+    float dck16RB;
+    float dck16GB;
 };
 
 struct VertexIn
@@ -731,16 +735,26 @@ fragment float4 fragment_daltonizeV1_tritanomaly(VertexOut vert [[stage_in]],
 }
 
 float4 dck16(
-    float4 srgba)
+             float4 srgba,
+             float dck16Severity,
+             float dck16RG,
+             float dck16RB,
+             float dck16GB)
 {
     //----------------------------------
     // DC1
     //----------------------------------
 
+    int sev =
+        clamp(
+            int(floor(dck16Severity + 0.5)),
+            0,
+            10);
+
     float4 simulated =
         applyProtanomalyRgb(
             srgba,
-            3);   // erstmal fest
+            sev);
 
     float4 dc =
         daltonizeV1(
@@ -748,30 +762,29 @@ float4 dck16(
             simulated);
 
     //----------------------------------
-    // RG
+    // K16
     //----------------------------------
 
-    float rgDiff =
+    float rg =
         dc.r - dc.g;
 
-    float rgShift =
-        rgDiff * 0.4;
-
-    dc.r += rgShift;
-    dc.g -= rgShift;
-
-    //----------------------------------
-    // RB
-    //----------------------------------
-
-    float rbDiff =
+    float rb =
         dc.r - dc.b;
 
-    float rbShift =
-        rbDiff * 0.15;
+    float gb =
+        dc.g - dc.b;
 
-    dc.r += rbShift;
-    dc.b -= rbShift;
+    dc.r +=
+        rg * dck16RG +
+        rb * dck16RB;
+
+    dc.g +=
+       -rg * dck16RG +
+        gb * dck16GB;
+
+    dc.b +=
+       -rb * dck16RB -
+        gb * dck16GB;
 
     //----------------------------------
 
@@ -795,7 +808,11 @@ fragment float4 fragment_DCK16(
             vert.texCoords);
 
     return dck16(
-        srgba);
+        srgba,
+        uniforms.dck16Severity,
+        uniforms.dck16RG,
+        uniforms.dck16RB,
+        uniforms.dck16GB);
 }
 
 bool colorsAreCompatibleWithAA(float r0, float g0, float r1, float g1)
