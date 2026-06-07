@@ -62,7 +62,7 @@
     if (_mtl.outputBuffer.length != outputImage.sizeInBytes())
     {
         _mtl.outputBuffer = [_mtl.device newBufferWithLength:outputImage.sizeInBytes()
-                                                     options:MTLResourceOptionCPUCacheModeDefault];
+                                                     options:MTLResourceCPUCacheModeDefaultCache];
     }
     
     auto commandBuffer = [_mtl.commandQueue commandBuffer];
