@@ -95,6 +95,8 @@
                                         [self createPipelineWithFragment:@"fragment_daltonizeV1_tritanomaly"],
                                         ];
     
+    _pipelineStates[@(DCK16)] = @[[self createPipelineWithFragment:@"fragment_DCK16"]];
+    
     _pipelineStates[@(SwitchCbCr)] = @[[self createPipelineWithFragment:@"fragment_swapCbCr"]];
     _pipelineStates[@(SwitchAndFlipCbCr)] = @[[self createPipelineWithFragment:@"fragment_swapAndFlipCbCr"]];
     _pipelineStates[@(InvertLightness)] = @[[self createPipelineWithFragment:@"fragment_invertLightness"]];

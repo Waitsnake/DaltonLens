@@ -58,6 +58,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                                          action: #selector(AppDelegate.setProcessingMode(sender:)),
                                          keyEquivalent: "1")
     
+    let dck16MenuItem = NSMenuItem(title: "DCK16",
+                                        action: #selector(AppDelegate.setProcessingMode(sender:)),
+                                        keyEquivalent: "9")
+    
     let switchToggleSeverityMenuItem = NSMenuItem(title: "Toggle Severity",
                                            action: #selector(AppDelegate.setProcessingMode(sender:)),
                                            keyEquivalent: "2")
@@ -97,6 +101,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         nothingMenuItem.keyEquivalentModifierMask = cmdAltCtrlMask
         daltonizeV1MenuItem.keyEquivalentModifierMask = cmdAltCtrlMask
+        dck16MenuItem.keyEquivalentModifierMask = cmdAltCtrlMask
         switchToggleSeverityMenuItem.keyEquivalentModifierMask = cmdAltCtrlMask
         simulateMenuItem.keyEquivalentModifierMask = cmdAltCtrlMask
         switchRedBlueMenuItem.keyEquivalentModifierMask = cmdAltCtrlMask
@@ -108,6 +113,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         menuItemsToProcessingMode = [
             nothingMenuItem: Nothing,
             daltonizeV1MenuItem: DaltonizeV1,
+            dck16MenuItem: DCK16,
             switchToggleSeverityMenuItem: ToogleSeverity,
             simulateMenuItem: SimulateDaltonism,
             switchRedBlueMenuItem: SwitchCbCr,
@@ -234,6 +240,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     dview.severity = 5
                 }
                 
+                // set default values when enabling DCK16
+                if sender == dck16MenuItem
+                {
+                    dview.dck16Severity = 1.0
+                    dview.dck16RG = 0.4
+                    dview.dck16RG = 0.15
+                    dview.dck16RG = 0.0
+                }
+                
                 dview.processingMode = processingType
                 dview.needsDisplay = true
                 
@@ -300,6 +315,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             processingMenu.addItem(nothingMenuItem)
             processingMenu.addItem(simulateMenuItem)
             processingMenu.addItem(daltonizeV1MenuItem)
+            processingMenu.addItem(dck16MenuItem)
             processingMenu.addItem(switchRedBlueMenuItem)
             processingMenu.addItem(switchAndFlipRedBlueMenuItem)
             processingMenu.addItem(invertLightnessMenuItem)
@@ -368,6 +384,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let shortcutHighlightExactColorUnderMouse = MASShortcut(keyCode:UInt(kVK_ANSI_8),
                                                                 modifierFlags:UInt(cmdControlAlt));
         
+        let shortcutDCK16 = MASShortcut(keyCode:UInt(kVK_ANSI_9),
+                                                                modifierFlags:UInt(cmdControlAlt));
+        
         let shortcutUp = MASShortcut(keyCode:UInt(kVK_UpArrow),
                                      modifierFlags:UInt(cmdControlAlt));
         
@@ -403,6 +422,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         MASShortcutMonitor.shared().register(shortcutDaltonizeV1) {
             updateProcessingMode() {prevMode in
                 return DaltonizeV1
+            };
+        }
+        
+        MASShortcutMonitor.shared().register(shortcutDCK16) {
+            updateProcessingMode() {prevMode in
+                return DCK16
             };
         }
         

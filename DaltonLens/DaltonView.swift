@@ -192,6 +192,11 @@ class DaltonView: MTKView {
     
     public var severity : Int32 = 5
     
+    public var dck16Severity : Float = 1.0
+    public var dck16RG : Float = 0.4
+    public var dck16RB : Float = 0.15
+    public var dck16GB : Float = 0.0
+    
     struct MetalData {
 
         let mtlRenderer : DLMetalRenderer

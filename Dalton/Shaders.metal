@@ -730,6 +730,74 @@ fragment float4 fragment_daltonizeV1_tritanomaly(VertexOut vert [[stage_in]],
     return srgbaOut;
 }
 
+float4 dck16(
+    float4 srgba)
+{
+    //----------------------------------
+    // DC1
+    //----------------------------------
+
+    float4 simulated =
+        applyProtanomalyRgb(
+            srgba,
+            3);   // erstmal fest
+
+    float4 dc =
+        daltonizeV1(
+            srgba,
+            simulated);
+
+    //----------------------------------
+    // RG
+    //----------------------------------
+
+    float rgDiff =
+        dc.r - dc.g;
+
+    float rgShift =
+        rgDiff * 0.4;
+
+    dc.r += rgShift;
+    dc.g -= rgShift;
+
+    //----------------------------------
+    // RB
+    //----------------------------------
+
+    float rbDiff =
+        dc.r - dc.b;
+
+    float rbShift =
+        rbDiff * 0.15;
+
+    dc.r += rbShift;
+    dc.b -= rbShift;
+
+    //----------------------------------
+
+    dc.rgb =
+        clamp(
+            dc.rgb,
+            0.0,
+            1.0);
+
+    return dc;
+}
+
+fragment float4 fragment_DCK16(
+    VertexOut vert [[stage_in]],
+    texture2d<float> screenTexture [[texture(0)]],
+    constant Uniforms& uniforms [[buffer(0)]])
+{
+    float4 srgba =
+        screenTexture.sample(
+            defaultSampler,
+            vert.texCoords);
+
+    return dck16(
+        srgba);
+}
+
 bool colorsAreCompatibleWithAA(float r0, float g0, float r1, float g1)
 {
     // FIXME: document this. This comes from some python experiments.

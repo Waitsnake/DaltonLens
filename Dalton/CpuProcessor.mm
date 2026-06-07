@@ -58,6 +58,13 @@ using namespace dl;
             break;
         }
             
+        case DCK16:
+        {
+            // nicht implementiert für CPU simulation, aber wir wollen auch kein assert
+            simulator.daltonizeV1(srgbaImage, self.blindnessType); // als workaround nehmen wir einfach DaltonizeV1
+            break;
+        }
+            
         case SwitchCbCr:
         {
             cbcrTransformer.switchCbCr(srgbaImage);
