@@ -66,6 +66,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                                            action: #selector(AppDelegate.setProcessingMode(sender:)),
                                            keyEquivalent: "2")
     
+    let dck16ParasMenuItem = NSMenuItem(title: "DCK16 Parameters",
+                                        action: #selector(AppDelegate.setProcessingMode(sender:)),
+                                        keyEquivalent: "9")
+    
     let switchRedBlueMenuItem = NSMenuItem(title: "Switch Red Blue",
                                            action: #selector(AppDelegate.setProcessingMode(sender:)),
                                            keyEquivalent: "4")
@@ -103,6 +107,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         daltonizeV1MenuItem.keyEquivalentModifierMask = cmdAltCtrlMask
         dck16MenuItem.keyEquivalentModifierMask = cmdAltCtrlMask
         switchToggleSeverityMenuItem.keyEquivalentModifierMask = cmdAltCtrlMask
+        dck16ParasMenuItem.keyEquivalentModifierMask = cmdAltCtrlMask
         simulateMenuItem.keyEquivalentModifierMask = cmdAltCtrlMask
         switchRedBlueMenuItem.keyEquivalentModifierMask = cmdAltCtrlMask
         switchAndFlipRedBlueMenuItem.keyEquivalentModifierMask = cmdAltCtrlMask
@@ -114,7 +119,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             nothingMenuItem: Nothing,
             daltonizeV1MenuItem: DaltonizeV1,
             dck16MenuItem: DCK16,
-            switchToggleSeverityMenuItem: ToogleSeverity,
             simulateMenuItem: SimulateDaltonism,
             switchRedBlueMenuItem: SwitchCbCr,
             switchAndFlipRedBlueMenuItem: SwitchAndFlipCbCr,
@@ -232,6 +236,136 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     dview.severity = dview.severity + 1
                 }
             }
+            else if sender == dck16ParasMenuItem
+            {
+                let alert = NSAlert()
+
+                alert.messageText = "DCK16 Parameters"
+
+                let view =
+                    NSView(
+                        frame: NSRect(
+                            x: 0,
+                            y: 0,
+                            width: 260,
+                            height: 140))
+
+                //----------------------------------
+                // Labels
+                //----------------------------------
+
+                let severityLabel =
+                    NSTextField(labelWithString: "Severity")
+
+                severityLabel.frame =
+                    NSRect(x: 10, y: 110, width: 80, height: 20)
+
+                let rgLabel =
+                    NSTextField(labelWithString: "RG")
+
+                rgLabel.frame =
+                    NSRect(x: 10, y: 80, width: 80, height: 20)
+
+                let rbLabel =
+                    NSTextField(labelWithString: "RB")
+
+                rbLabel.frame =
+                    NSRect(x: 10, y: 50, width: 80, height: 20)
+
+                let gbLabel =
+                    NSTextField(labelWithString: "GB")
+
+                gbLabel.frame =
+                    NSRect(x: 10, y: 20, width: 80, height: 20)
+
+                //----------------------------------
+                // Fields
+                //----------------------------------
+
+                let severityField =
+                    NSTextField(
+                        frame: NSRect(
+                            x: 100,
+                            y: 105,
+                            width: 120,
+                            height: 24))
+
+                severityField.stringValue =
+                    String(dview.dck16Severity)
+
+                let rgField =
+                    NSTextField(
+                        frame: NSRect(
+                            x: 100,
+                            y: 75,
+                            width: 120,
+                            height: 24))
+
+                rgField.stringValue =
+                    String(dview.dck16RG)
+
+                let rbField =
+                    NSTextField(
+                        frame: NSRect(
+                            x: 100,
+                            y: 45,
+                            width: 120,
+                            height: 24))
+
+                rbField.stringValue =
+                    String(dview.dck16RB)
+
+                let gbField =
+                    NSTextField(
+                        frame: NSRect(
+                            x: 100,
+                            y: 15,
+                            width: 120,
+                            height: 24))
+
+                gbField.stringValue =
+                    String(dview.dck16GB)
+
+                //----------------------------------
+
+                view.addSubview(severityLabel)
+                view.addSubview(rgLabel)
+                view.addSubview(rbLabel)
+                view.addSubview(gbLabel)
+
+                view.addSubview(severityField)
+                view.addSubview(rgField)
+                view.addSubview(rbField)
+                view.addSubview(gbField)
+
+                alert.accessoryView = view
+
+                alert.addButton(withTitle: "OK")
+                alert.addButton(withTitle: "Cancel")
+
+                let result = alert.runModal()
+
+                //----------------------------------
+                // OK ?
+                //----------------------------------
+
+                if result == .alertFirstButtonReturn
+                {
+                    dview.dck16Severity =
+                        Float(severityField.stringValue) ?? 1.0
+
+                    dview.dck16RG =
+                        Float(rgField.stringValue) ?? 0.4
+
+                    dview.dck16RB =
+                        Float(rbField.stringValue) ?? 0.15
+
+                    dview.dck16GB =
+                        Float(gbField.stringValue) ?? 0.0
+
+                    dview.needsDisplay = true
+                }
+            }
             else if let processingType = menuItemsToProcessingMode[sender] {
                 
                 // set default severity when enabling it to 5
@@ -243,10 +377,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 // set default values when enabling DCK16
                 if sender == dck16MenuItem
                 {
+                    /*
                     dview.dck16Severity = 1.0
                     dview.dck16RG = 0.4
                     dview.dck16RG = 0.15
                     dview.dck16RG = 0.0
+                     */
                 }
                 
                 dview.processingMode = processingType
@@ -262,12 +398,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
             
             // Disable all items
-            for item in menuItemsToProcessingMode.keys {
-                item.state = .off
+            if !(sender == switchToggleSeverityMenuItem || sender == dck16ParasMenuItem)
+            {
+                for item in menuItemsToProcessingMode.keys {
+                    item.state = .off
+                }
+                sender.state = .on
             }
-            
-            // Re-enable the current one.
-            sender.state = .on
         }
         else
         {
@@ -332,8 +469,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             menu.addItem(processingMenuItem)
         }
         
+        func addToolsMenu () {
+            let toolsMenu = NSMenu()
+
+            toolsMenu.addItem(switchToggleSeverityMenuItem)
+            toolsMenu.addItem(dck16ParasMenuItem)
+                        
+            let toolsMenuItem = NSMenuItem(title: "Tools", action: nil, keyEquivalent: "")
+            toolsMenuItem.submenu = toolsMenu
+            menu.addItem(toolsMenuItem)
+        }
+        
+        
         addBlindnessMenu()
         addProcessingMenu()
+        addToolsMenu()
+
         
         menu.addItem(NSMenuItem.separator())
         

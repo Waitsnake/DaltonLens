@@ -304,6 +304,10 @@ class DaltonView: MTKView {
         uniformsBuffer.pointee.underCursorRgba.3 = Float(cursorSRGBA.a)/255.0;
         uniformsBuffer.pointee.frameCount = frameCount;
         uniformsBuffer.pointee.severity = severity;
+        uniformsBuffer.pointee.dck16Severity = dck16Severity;
+        uniformsBuffer.pointee.dck16RG = dck16RG;
+        uniformsBuffer.pointee.dck16RB = dck16RB;
+        uniformsBuffer.pointee.dck16GB = dck16GB;
     
         // Keeping this around, but we're now using Metal.
         let doCpuTransform = false;
