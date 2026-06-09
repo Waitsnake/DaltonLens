@@ -56,6 +56,7 @@ struct Uniforms
     float dck16RG;
     float dck16RB;
     float dck16GB;
+    float dck16PreserveLuma;
 };
 
 struct VertexIn
@@ -734,12 +735,21 @@ fragment float4 fragment_daltonizeV1_tritanomaly(VertexOut vert [[stage_in]],
     return srgbaOut;
 }
 
+float luminance(float4 srgba)
+{
+    return
+        0.2126 * srgba.r +
+        0.7152 * srgba.g +
+        0.0722 * srgba.b;
+}
+
 float4 dck16(
              float4 srgba,
              float dck16Severity,
              float dck16RG,
              float dck16RB,
-             float dck16GB)
+             float dck16GB,
+             float dck16PreserveLuma)
 {
     //----------------------------------
     // DC1
@@ -786,7 +796,31 @@ float4 dck16(
        -rb * dck16RB -
         gb * dck16GB;
 
+    dc.rgb =
+        clamp(
+            dc.rgb,
+            0.0,
+            1.0);
+    
     //----------------------------------
+    // L (luminance preserve)
+    //----------------------------------
+
+    float yOriginal =
+        luminance(
+                  srgba);
+
+    float yCorrected =
+        luminance(
+            dc);
+
+    float deltaY =
+        yCorrected -
+        yOriginal;
+
+    dc.rgb -=
+        float3(deltaY) *
+        dck16PreserveLuma;
 
     dc.rgb =
         clamp(
@@ -812,7 +846,8 @@ fragment float4 fragment_DCK16(
         uniforms.dck16Severity,
         uniforms.dck16RG,
         uniforms.dck16RB,
-        uniforms.dck16GB);
+        uniforms.dck16GB,
+        uniforms.dck16PreserveLuma);
 }
 
 bool colorsAreCompatibleWithAA(float r0, float g0, float r1, float g1)

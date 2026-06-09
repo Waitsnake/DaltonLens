@@ -248,7 +248,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                             x: 0,
                             y: 0,
                             width: 260,
-                            height: 140))
+                            height: 170))
 
                 //----------------------------------
                 // Labels
@@ -258,25 +258,32 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     NSTextField(labelWithString: "Severity")
 
                 severityLabel.frame =
-                    NSRect(x: 10, y: 110, width: 80, height: 20)
+                    NSRect(x: 10, y: 140, width: 80, height: 20)
 
                 let rgLabel =
                     NSTextField(labelWithString: "RG")
 
                 rgLabel.frame =
-                    NSRect(x: 10, y: 80, width: 80, height: 20)
+                    NSRect(x: 10, y: 110, width: 80, height: 20)
 
                 let rbLabel =
                     NSTextField(labelWithString: "RB")
 
                 rbLabel.frame =
-                    NSRect(x: 10, y: 50, width: 80, height: 20)
+                    NSRect(x: 10, y: 80, width: 80, height: 20)
 
                 let gbLabel =
                     NSTextField(labelWithString: "GB")
 
                 gbLabel.frame =
+                    NSRect(x: 10, y: 50, width: 80, height: 20)
+
+                let preserveLumaLabel =
+                    NSTextField(labelWithString: "Pres Luma")
+
+                preserveLumaLabel.frame =
                     NSRect(x: 10, y: 20, width: 80, height: 20)
+
 
                 //----------------------------------
                 // Fields
@@ -286,7 +293,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     NSTextField(
                         frame: NSRect(
                             x: 100,
-                            y: 105,
+                            y: 135,
                             width: 120,
                             height: 24))
 
@@ -297,7 +304,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     NSTextField(
                         frame: NSRect(
                             x: 100,
-                            y: 75,
+                            y: 105,
                             width: 120,
                             height: 24))
 
@@ -308,7 +315,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     NSTextField(
                         frame: NSRect(
                             x: 100,
-                            y: 45,
+                            y: 75,
                             width: 120,
                             height: 24))
 
@@ -319,12 +326,24 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     NSTextField(
                         frame: NSRect(
                             x: 100,
-                            y: 15,
+                            y: 45,
                             width: 120,
                             height: 24))
 
                 gbField.stringValue =
                     String(dview.dck16GB)
+
+                let preserveLumaField =
+                    NSTextField(
+                        frame: NSRect(
+                            x: 100,
+                            y: 15,
+                            width: 120,
+                            height: 24))
+
+                preserveLumaField.stringValue =
+                    String(dview.dck16PreserveLuma)
+
 
                 //----------------------------------
 
@@ -332,12 +351,14 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 view.addSubview(rgLabel)
                 view.addSubview(rbLabel)
                 view.addSubview(gbLabel)
+                view.addSubview(preserveLumaLabel)
 
                 view.addSubview(severityField)
                 view.addSubview(rgField)
                 view.addSubview(rbField)
                 view.addSubview(gbField)
-
+                view.addSubview(preserveLumaField)
+                
                 alert.accessoryView = view
 
                 alert.addButton(withTitle: "OK")
@@ -362,6 +383,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
                     dview.dck16GB =
                         Float(gbField.stringValue) ?? 0.0
+                    
+                    dview.dck16PreserveLuma =
+                        Float(preserveLumaField.stringValue) ?? 1.0
 
                     dview.needsDisplay = true
                 }

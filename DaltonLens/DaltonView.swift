@@ -196,6 +196,7 @@ class DaltonView: MTKView {
     public var dck16RG : Float = 0.4
     public var dck16RB : Float = 0.15
     public var dck16GB : Float = 0.0
+    public var dck16PreserveLuma : Float = 1.0
     
     struct MetalData {
 
@@ -308,6 +309,7 @@ class DaltonView: MTKView {
         uniformsBuffer.pointee.dck16RG = dck16RG;
         uniformsBuffer.pointee.dck16RB = dck16RB;
         uniformsBuffer.pointee.dck16GB = dck16GB;
+        uniformsBuffer.pointee.dck16PreserveLuma = dck16PreserveLuma;
     
         // Keeping this around, but we're now using Metal.
         let doCpuTransform = false;
