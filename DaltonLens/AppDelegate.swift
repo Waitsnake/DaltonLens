@@ -689,10 +689,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             window.level = convertToNSWindowLevel(Int(CGWindowLevelKey.assistiveTechHighWindow.rawValue));
             //window.preferredBackingLocation = NSWindow.BackingLocation.videoMemory;
             window.collectionBehavior = [NSWindow.CollectionBehavior.stationary,
-                                         // NSWindowCollectionBehavior.canJoinAllSpaces,
+                                         //NSWindow.CollectionBehavior.canJoinAllSpaces,
                                         NSWindow.CollectionBehavior.moveToActiveSpace,
                                         NSWindow.CollectionBehavior.ignoresCycle];
-            
+                        
             // window.backgroundColor = NSColor.clear;
             // Using a tiny alpha value to make sure that windows below this window get refreshes.
             // Apps like Google Chrome or spotify won't redraw otherwise.
@@ -717,6 +717,15 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // window!.delegate = daltonView;
     }
     
+    @objc func activeSpaceChanged(
+        _ notification: Notification)
+    {
+        if let window = self.window
+        {
+           window.orderFront(nil)
+        }
+    }
+    
     func applicationDidFinishLaunching(_ aNotification: Notification) {
         // Insert code here to initialize your application
         
@@ -725,6 +734,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         createGlobalShortcuts ()
         
         createWindowAndDaltonView ()
+        
+        NSWorkspace.shared.notificationCenter.addObserver(
+            self,
+            selector: #selector(activeSpaceChanged),
+            name: NSWorkspace.activeSpaceDidChangeNotification,
+            object: nil)
+        
         
         let defaults = UserDefaults.standard;
         
