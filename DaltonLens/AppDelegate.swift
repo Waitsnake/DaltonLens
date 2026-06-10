@@ -58,7 +58,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                                          action: #selector(AppDelegate.setProcessingMode(sender:)),
                                          keyEquivalent: "1")
     
-    let dck16MenuItem = NSMenuItem(title: "DCK16",
+    let dcklMenuItem = NSMenuItem(title: "DCKL",
                                         action: #selector(AppDelegate.setProcessingMode(sender:)),
                                         keyEquivalent: "9")
     
@@ -66,7 +66,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                                            action: #selector(AppDelegate.setProcessingMode(sender:)),
                                            keyEquivalent: "2")
     
-    let dck16ParasMenuItem = NSMenuItem(title: "DCK16 Parameters",
+    let dcklParasMenuItem = NSMenuItem(title: "DCKL Parameters",
                                         action: #selector(AppDelegate.setProcessingMode(sender:)),
                                         keyEquivalent: "9")
     
@@ -105,9 +105,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         nothingMenuItem.keyEquivalentModifierMask = cmdAltCtrlMask
         daltonizeV1MenuItem.keyEquivalentModifierMask = cmdAltCtrlMask
-        dck16MenuItem.keyEquivalentModifierMask = cmdAltCtrlMask
+        dcklMenuItem.keyEquivalentModifierMask = cmdAltCtrlMask
         switchToggleSeverityMenuItem.keyEquivalentModifierMask = cmdAltCtrlMask
-        dck16ParasMenuItem.keyEquivalentModifierMask = cmdAltCtrlMask
+        dcklParasMenuItem.keyEquivalentModifierMask = cmdAltCtrlMask
         simulateMenuItem.keyEquivalentModifierMask = cmdAltCtrlMask
         switchRedBlueMenuItem.keyEquivalentModifierMask = cmdAltCtrlMask
         switchAndFlipRedBlueMenuItem.keyEquivalentModifierMask = cmdAltCtrlMask
@@ -118,7 +118,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         menuItemsToProcessingMode = [
             nothingMenuItem: Nothing,
             daltonizeV1MenuItem: DaltonizeV1,
-            dck16MenuItem: DCK16,
+            dcklMenuItem: DCKL,
             simulateMenuItem: SimulateDaltonism,
             switchRedBlueMenuItem: SwitchCbCr,
             switchAndFlipRedBlueMenuItem: SwitchAndFlipCbCr,
@@ -236,11 +236,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     dview.severity = dview.severity + 1
                 }
             }
-            else if sender == dck16ParasMenuItem
+            else if sender == dcklParasMenuItem
             {
                 let alert = NSAlert()
 
-                alert.messageText = "DCK16 Parameters"
+                alert.messageText = "DCKL Parameters"
 
                 let view =
                     NSView(
@@ -298,7 +298,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                             height: 24))
 
                 severityField.stringValue =
-                    String(dview.dck16Severity)
+                    String(dview.dcklSeverity)
 
                 let rgField =
                     NSTextField(
@@ -309,7 +309,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                             height: 24))
 
                 rgField.stringValue =
-                    String(dview.dck16RG)
+                    String(dview.dcklRG)
 
                 let rbField =
                     NSTextField(
@@ -320,7 +320,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                             height: 24))
 
                 rbField.stringValue =
-                    String(dview.dck16RB)
+                    String(dview.dcklRB)
 
                 let gbField =
                     NSTextField(
@@ -331,7 +331,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                             height: 24))
 
                 gbField.stringValue =
-                    String(dview.dck16GB)
+                    String(dview.dcklGB)
 
                 let preserveLumaField =
                     NSTextField(
@@ -342,7 +342,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                             height: 24))
 
                 preserveLumaField.stringValue =
-                    String(dview.dck16PreserveLuma)
+                    String(dview.dcklPreserveLuma)
 
 
                 //----------------------------------
@@ -372,19 +372,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
                 if result == .alertFirstButtonReturn
                 {
-                    dview.dck16Severity =
-                        Float(severityField.stringValue) ?? 1.0
+                    dview.dcklSeverity =
+                        Float(severityField.stringValue) ?? 3.0
 
-                    dview.dck16RG =
-                        Float(rgField.stringValue) ?? 0.4
+                    dview.dcklRG =
+                        Float(rgField.stringValue) ?? 1.0
 
-                    dview.dck16RB =
-                        Float(rbField.stringValue) ?? 0.15
+                    dview.dcklRB =
+                        Float(rbField.stringValue) ?? 1.0
 
-                    dview.dck16GB =
-                        Float(gbField.stringValue) ?? 0.0
+                    dview.dcklGB =
+                        Float(gbField.stringValue) ?? 1.0
                     
-                    dview.dck16PreserveLuma =
+                    dview.dcklPreserveLuma =
                         Float(preserveLumaField.stringValue) ?? 1.0
 
                     dview.needsDisplay = true
@@ -397,18 +397,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 {
                     dview.severity = 5
                 }
-                
-                // set default values when enabling DCK16
-                if sender == dck16MenuItem
-                {
-                    /*
-                    dview.dck16Severity = 1.0
-                    dview.dck16RG = 0.4
-                    dview.dck16RG = 0.15
-                    dview.dck16RG = 0.0
-                     */
-                }
-                
+                                
                 dview.processingMode = processingType
                 dview.needsDisplay = true
                 
@@ -422,7 +411,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
             
             // Disable all items
-            if !(sender == switchToggleSeverityMenuItem || sender == dck16ParasMenuItem)
+            if !(sender == switchToggleSeverityMenuItem || sender == dcklParasMenuItem)
             {
                 for item in menuItemsToProcessingMode.keys {
                     item.state = .off
@@ -476,7 +465,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             processingMenu.addItem(nothingMenuItem)
             processingMenu.addItem(simulateMenuItem)
             processingMenu.addItem(daltonizeV1MenuItem)
-            processingMenu.addItem(dck16MenuItem)
+            processingMenu.addItem(dcklMenuItem)
             processingMenu.addItem(switchRedBlueMenuItem)
             processingMenu.addItem(switchAndFlipRedBlueMenuItem)
             processingMenu.addItem(invertLightnessMenuItem)
@@ -497,7 +486,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let toolsMenu = NSMenu()
 
             toolsMenu.addItem(switchToggleSeverityMenuItem)
-            toolsMenu.addItem(dck16ParasMenuItem)
+            toolsMenu.addItem(dcklParasMenuItem)
                         
             let toolsMenuItem = NSMenuItem(title: "Tools", action: nil, keyEquivalent: "")
             toolsMenuItem.submenu = toolsMenu
@@ -559,7 +548,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let shortcutHighlightExactColorUnderMouse = MASShortcut(keyCode:UInt(kVK_ANSI_8),
                                                                 modifierFlags:UInt(cmdControlAlt));
         
-        let shortcutDCK16 = MASShortcut(keyCode:UInt(kVK_ANSI_9),
+        let shortcutDCKL = MASShortcut(keyCode:UInt(kVK_ANSI_9),
                                                                 modifierFlags:UInt(cmdControlAlt));
         
         let shortcutUp = MASShortcut(keyCode:UInt(kVK_UpArrow),
@@ -600,9 +589,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             };
         }
         
-        MASShortcutMonitor.shared().register(shortcutDCK16) {
+        MASShortcutMonitor.shared().register(shortcutDCKL) {
             updateProcessingMode() {prevMode in
-                return DCK16
+                return DCKL
             };
         }
         

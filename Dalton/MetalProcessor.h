@@ -19,11 +19,11 @@ struct DLMetalUniforms
     float underCursorRgba[4];
     int32_t frameCount;
     int32_t severity;
-    float dck16Severity;
-    float dck16RG;
-    float dck16RB;
-    float dck16GB;
-    float dck16PreserveLuma;
+    float dcklSeverity;
+    float dcklRG;
+    float dcklRB;
+    float dcklGB;
+    float dcklPreserveLuma;
     int32_t padding[1];
 };
 

@@ -52,11 +52,11 @@ struct Uniforms
     float4 srgbaUnderCursor;
     int frameCount; // for animations
     int severity;
-    float dck16Severity;
-    float dck16RG;
-    float dck16RB;
-    float dck16GB;
-    float dck16PreserveLuma;
+    float dcklSeverity;
+    float dcklRG;
+    float dcklRB;
+    float dcklGB;
+    float dcklPreserveLuma;
 };
 
 struct VertexIn
@@ -831,7 +831,123 @@ float4 dck16(
     return dc;
 }
 
-fragment float4 fragment_DCK16(
+float4 dck17(
+             float4 srgba,
+             float dck17Severity,
+             float dck17RG,
+             float dck17RB,
+             float dck17GB,
+             float dck17PreserveLuma)
+{
+    //----------------------------------
+    // Simulation
+    //----------------------------------
+
+    int sev =
+        clamp(
+            int(floor(dck17Severity + 0.5)),
+            0,
+            10);
+
+    float4 simulated =
+        applyProtanomalyRgb(
+            srgba,
+            sev);
+
+    //----------------------------------
+    // Original channel differences
+    //----------------------------------
+
+    float rgOriginal =
+        srgba.r - srgba.g;
+
+    float rbOriginal =
+        srgba.r - srgba.b;
+
+    float gbOriginal =
+        srgba.g - srgba.b;
+
+    //----------------------------------
+    // Simulated channel differences
+    //----------------------------------
+
+    float rgSimulated =
+        simulated.r - simulated.g;
+
+    float rbSimulated =
+        simulated.r - simulated.b;
+
+    float gbSimulated =
+        simulated.g - simulated.b;
+
+    //----------------------------------
+    // Information loss
+    //----------------------------------
+
+    float rgError =
+        rgOriginal - rgSimulated;
+
+    float rbError =
+        rbOriginal - rbSimulated;
+
+    float gbError =
+        gbOriginal - gbSimulated;
+
+    //----------------------------------
+    // DCK17 correction
+    //----------------------------------
+
+    float4 dc =
+        srgba;
+
+    dc.r +=
+        rgError * dck17RG +
+        rbError * dck17RB;
+
+    dc.g +=
+       -rgError * dck17RG +
+        gbError * dck17GB;
+
+    dc.b +=
+       -rbError * dck17RB -
+        gbError * dck17GB;
+
+    dc.rgb =
+        clamp(
+            dc.rgb,
+            0.0,
+            1.0);
+
+    //----------------------------------
+    // Luminance preserve
+    //----------------------------------
+
+    float yOriginal =
+        luminance(
+            srgba);
+
+    float yCorrected =
+        luminance(
+            dc);
+
+    float deltaY =
+        yCorrected -
+        yOriginal;
+
+    dc.rgb -=
+        float3(deltaY) *
+        dck17PreserveLuma;
+
+    dc.rgb =
+        clamp(
+            dc.rgb,
+            0.0,
+            1.0);
+
+    return dc;
+}
+
+fragment float4 fragment_DCKL(
     VertexOut vert [[stage_in]],
     texture2d<float> screenTexture [[texture(0)]],
     constant Uniforms& uniforms [[buffer(0)]])
@@ -841,13 +957,13 @@ fragment float4 fragment_DCK16(
             defaultSampler,
             vert.texCoords);
 
-    return dck16(
+    return dck17(
         srgba,
-        uniforms.dck16Severity,
-        uniforms.dck16RG,
-        uniforms.dck16RB,
-        uniforms.dck16GB,
-        uniforms.dck16PreserveLuma);
+        uniforms.dcklSeverity,
+        uniforms.dcklRG,
+        uniforms.dcklRB,
+        uniforms.dcklGB,
+        uniforms.dcklPreserveLuma);
 }
 
 bool colorsAreCompatibleWithAA(float r0, float g0, float r1, float g1)

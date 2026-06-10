@@ -13,7 +13,7 @@ typedef enum
     Nothing = 0,
     SimulateDaltonism,
     DaltonizeV1,
-    DCK16,
+    DCKL,
     ToogleSeverity,
     SwitchCbCr,
     SwitchAndFlipCbCr,
