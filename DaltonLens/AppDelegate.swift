@@ -248,7 +248,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                             x: 0,
                             y: 0,
                             width: 260,
-                            height: 170))
+                            height: 210))
 
                 //----------------------------------
                 // Labels
@@ -258,32 +258,37 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     NSTextField(labelWithString: "Severity")
 
                 severityLabel.frame =
-                    NSRect(x: 10, y: 140, width: 80, height: 20)
+                    NSRect(x: 10, y: 180, width: 80, height: 20)
+
+                let simuLabel =
+                    NSTextField(labelWithString: "Simulation")
+
+                simuLabel.frame =
+                    NSRect(x: 10, y: 150, width: 80, height: 20)
 
                 let rgLabel =
                     NSTextField(labelWithString: "RG")
 
                 rgLabel.frame =
-                    NSRect(x: 10, y: 110, width: 80, height: 20)
+                    NSRect(x: 10, y: 120, width: 80, height: 20)
 
                 let rbLabel =
                     NSTextField(labelWithString: "RB")
 
                 rbLabel.frame =
-                    NSRect(x: 10, y: 80, width: 80, height: 20)
+                    NSRect(x: 10, y: 90, width: 80, height: 20)
 
                 let gbLabel =
                     NSTextField(labelWithString: "GB")
 
                 gbLabel.frame =
-                    NSRect(x: 10, y: 50, width: 80, height: 20)
+                    NSRect(x: 10, y: 60, width: 80, height: 20)
 
                 let preserveLumaLabel =
                     NSTextField(labelWithString: "Pres Luma")
 
                 preserveLumaLabel.frame =
-                    NSRect(x: 10, y: 20, width: 80, height: 20)
-
+                    NSRect(x: 10, y: 30, width: 80, height: 20)
 
                 //----------------------------------
                 // Fields
@@ -293,18 +298,43 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     NSTextField(
                         frame: NSRect(
                             x: 100,
-                            y: 135,
+                            y: 175,
                             width: 120,
                             height: 24))
 
                 severityField.stringValue =
                     String(dview.dcklSeverity)
 
+                //----------------------------------
+                // Simulation Popup
+                //----------------------------------
+
+                let simuPopup =
+                    NSPopUpButton(
+                        frame: NSRect(
+                            x: 100,
+                            y: 145,
+                            width: 120,
+                            height: 26),
+                        pullsDown: false)
+
+                simuPopup.addItems(
+                    withTitles:
+                    [
+                        "Machado",
+                        "Viénot"
+                    ])
+
+                simuPopup.selectItem(
+                    at: Int(dview.dcklSimu))
+
+                //----------------------------------
+
                 let rgField =
                     NSTextField(
                         frame: NSRect(
                             x: 100,
-                            y: 105,
+                            y: 115,
                             width: 120,
                             height: 24))
 
@@ -315,7 +345,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     NSTextField(
                         frame: NSRect(
                             x: 100,
-                            y: 75,
+                            y: 85,
                             width: 120,
                             height: 24))
 
@@ -326,7 +356,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     NSTextField(
                         frame: NSRect(
                             x: 100,
-                            y: 45,
+                            y: 55,
                             width: 120,
                             height: 24))
 
@@ -337,28 +367,29 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     NSTextField(
                         frame: NSRect(
                             x: 100,
-                            y: 15,
+                            y: 25,
                             width: 120,
                             height: 24))
 
                 preserveLumaField.stringValue =
                     String(dview.dcklPreserveLuma)
 
-
                 //----------------------------------
 
                 view.addSubview(severityLabel)
+                view.addSubview(simuLabel)
                 view.addSubview(rgLabel)
                 view.addSubview(rbLabel)
                 view.addSubview(gbLabel)
                 view.addSubview(preserveLumaLabel)
 
                 view.addSubview(severityField)
+                view.addSubview(simuPopup)
                 view.addSubview(rgField)
                 view.addSubview(rbField)
                 view.addSubview(gbField)
                 view.addSubview(preserveLumaField)
-                
+
                 alert.accessoryView = view
 
                 alert.addButton(withTitle: "OK")
@@ -375,6 +406,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     dview.dcklSeverity =
                         Float(severityField.stringValue) ?? 3.0
 
+                    dview.dcklSimu =
+                        Int32(simuPopup.indexOfSelectedItem)
+
                     dview.dcklRG =
                         Float(rgField.stringValue) ?? 1.0
 
@@ -383,7 +417,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
                     dview.dcklGB =
                         Float(gbField.stringValue) ?? 1.0
-                    
+
                     dview.dcklPreserveLuma =
                         Float(preserveLumaField.stringValue) ?? 1.0
 

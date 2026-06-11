@@ -24,7 +24,7 @@ struct DLMetalUniforms
     float dcklRB;
     float dcklGB;
     float dcklPreserveLuma;
-    int32_t padding[1];
+    int32_t dcklSimu;
 };
 
 @interface DLMetalProcessor : NSObject

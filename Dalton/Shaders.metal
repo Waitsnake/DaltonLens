@@ -57,6 +57,7 @@ struct Uniforms
     float dcklRB;
     float dcklGB;
     float dcklPreserveLuma;
+    int dcklSimu;
 };
 
 struct VertexIn
@@ -581,6 +582,80 @@ float4 applyTritanomalyRgb (float4 srgba, int severity)
     return srgbaTransformed;
 }
 
+//----------------------------------
+// Viénot 1999 - Protan
+//----------------------------------
+
+float3 applyProtanopiaVienot(
+    float3 lms,
+    float severity)
+{
+    float3 outLms = lms;
+
+    outLms.x =
+        (1.0 - severity) * lms.x +
+        severity *
+        (2.02344 * lms.y -
+         2.52580 * lms.z);
+
+    return outLms;
+}
+
+//----------------------------------
+// Viénot 1999 - Deutan
+//----------------------------------
+
+float3 applyDeuteranopiaVienot(
+    float3 lms,
+    float severity)
+{
+    float3 outLms = lms;
+
+    outLms.y =
+        (1.0 - severity) * lms.y +
+        severity *
+        (0.49421 * lms.x +
+         1.24827 * lms.z);
+
+    return outLms;
+}
+
+//----------------------------------
+// Brettel 1997 - Tritan
+//----------------------------------
+
+float3 applyTritanopiaBrettel(
+    float3 lms,
+    float severity)
+{
+    float3 outLms = lms;
+
+    if ((lms.x * 0.34478 -
+         lms.y * 0.65518) >= 0.0)
+    {
+        // Plane 1
+
+        outLms.z =
+            (1.0 - severity) * lms.z +
+            severity *
+            (-0.00257 * lms.x +
+              0.05366 * lms.y);
+    }
+    else
+    {
+        // Plane 2
+
+        outLms.z =
+            (1.0 - severity) * lms.z +
+            severity *
+            (-0.06011 * lms.x +
+              0.16299 * lms.y);
+    }
+
+    return outLms;
+}
+
+
 fragment float4 fragment_simulateDaltonism_protanope(VertexOut vert [[stage_in]],
                                                      texture2d<float> screenTexture [[texture(0)]])
 {
@@ -743,7 +818,8 @@ float luminance(float4 srgba)
         0.0722 * srgba.b;
 }
 
-float4 dck16(
+// dck16 with Machado CVD simulation
+float4 dck16M(
              float4 srgba,
              float dck16Severity,
              float dck16RG,
@@ -831,7 +907,124 @@ float4 dck16(
     return dc;
 }
 
-float4 dck17(
+// dck17 with Brettel+Vienot CVD simulation
+float4 dck17BV(
+             float4 srgba,
+             float dck17Severity,
+             float dck17RG,
+             float dck17RB,
+             float dck17GB,
+             float dck17PreserveLuma)
+{
+    //----------------------------------
+    // Simulation
+    //----------------------------------
+
+    float severity =
+        clamp(
+            dck17Severity / 10.0,
+            0.0,
+            1.0);
+    
+    float3 lms = lmsFromSRGBA(srgba);
+    float3 simulatedLms = applyProtanopiaVienot(lms, severity);
+    float4 simulated = sRGBAFromLms(simulatedLms, 1.0);
+
+    //----------------------------------
+    // Original channel differences
+    //----------------------------------
+
+    float rgOriginal =
+        srgba.r - srgba.g;
+
+    float rbOriginal =
+        srgba.r - srgba.b;
+
+    float gbOriginal =
+        srgba.g - srgba.b;
+
+    //----------------------------------
+    // Simulated channel differences
+    //----------------------------------
+
+    float rgSimulated =
+        simulated.r - simulated.g;
+
+    float rbSimulated =
+        simulated.r - simulated.b;
+
+    float gbSimulated =
+        simulated.g - simulated.b;
+
+    //----------------------------------
+    // Information loss
+    //----------------------------------
+
+    float rgError =
+        rgOriginal - rgSimulated;
+
+    float rbError =
+        rbOriginal - rbSimulated;
+
+    float gbError =
+        gbOriginal - gbSimulated;
+
+    //----------------------------------
+    // DCK17 correction
+    //----------------------------------
+
+    float4 dc =
+        srgba;
+
+    dc.r +=
+        rgError * dck17RG +
+        rbError * dck17RB;
+
+    dc.g +=
+       -rgError * dck17RG +
+        gbError * dck17GB;
+
+    dc.b +=
+       -rbError * dck17RB -
+        gbError * dck17GB;
+
+    dc.rgb =
+        clamp(
+            dc.rgb,
+            0.0,
+            1.0);
+
+    //----------------------------------
+    // Luminance preserve
+    //----------------------------------
+
+    float yOriginal =
+        luminance(
+            srgba);
+
+    float yCorrected =
+        luminance(
+            dc);
+
+    float deltaY =
+        yCorrected -
+        yOriginal;
+
+    dc.rgb -=
+        float3(deltaY) *
+        dck17PreserveLuma;
+
+    dc.rgb =
+        clamp(
+            dc.rgb,
+            0.0,
+            1.0);
+
+    return dc;
+}
+
+// dck17 with Machado CVD simulation
+float4 dck17M(
              float4 srgba,
              float dck17Severity,
              float dck17RG,
@@ -956,14 +1149,44 @@ fragment float4 fragment_DCKL(
         screenTexture.sample(
             defaultSampler,
             vert.texCoords);
-
-    return dck17(
-        srgba,
-        uniforms.dcklSeverity,
-        uniforms.dcklRG,
-        uniforms.dcklRB,
-        uniforms.dcklGB,
-        uniforms.dcklPreserveLuma);
+    
+    float4 simuResult;
+    if (uniforms.dcklSimu==0)
+    {
+        // dck17 with Machado CVD simulation
+        simuResult = dck17M(
+            srgba,
+            uniforms.dcklSeverity,
+            uniforms.dcklRG,
+            uniforms.dcklRB,
+            uniforms.dcklGB,
+            uniforms.dcklPreserveLuma);
+    }
+    else if (uniforms.dcklSimu==1)
+    {
+        // dck17 with Brettel+Vienot CVD simulation
+        simuResult = dck17BV(
+            srgba,
+            uniforms.dcklSeverity,
+            uniforms.dcklRG,
+            uniforms.dcklRB,
+            uniforms.dcklGB,
+            uniforms.dcklPreserveLuma);
+    }
+    else
+    {
+        // default is Machado
+        // dck17 with Machado CVD simulation
+        simuResult = dck17M(
+            srgba,
+            uniforms.dcklSeverity,
+            uniforms.dcklRG,
+            uniforms.dcklRB,
+            uniforms.dcklGB,
+            uniforms.dcklPreserveLuma);
+    }
+    
+    return simuResult;
 }
 
 bool colorsAreCompatibleWithAA(float r0, float g0, float r1, float g1)
