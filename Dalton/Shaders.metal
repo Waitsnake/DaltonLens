@@ -6,6 +6,9 @@
 
 #undef USE_ONE_NIGHT_HACK
 
+// use DCK16L or DCK17L(recommended)
+#define USE_DCK17L
+
 #include <metal_stdlib>
 using namespace metal;
 
@@ -14,6 +17,7 @@ float4 sRGBAfromYCbCr (float3 yCbCr, float alpha);
 
 float3 lmsFromSRGBA (float4 srgba);
 float4 sRGBAFromLms (float3 lms, float alpha);
+float4 sRGBAFromLms_no_clamp (float3 lms, float alpha);
 
 float3 HCVFromRGB(float3 RGB);
 float3 RGBFromHUE(float H);
@@ -259,6 +263,21 @@ float4 sRGBAFromLms (float3 lms, float alpha)
     srgbaOut.r = clamp(0.0809445*lms[0] - 0.130504*lms[1] + 0.116721*lms[2], 0.0, 1.0);
     srgbaOut.g = clamp(-0.0102485*lms[0] + 0.0540193*lms[1] - 0.113615*lms[2], 0.0, 1.0);
     srgbaOut.b = clamp(-0.000365297*lms[0] - 0.00412162*lms[1] + 0.693511*lms[2], 0.0, 1.0);
+    srgbaOut.a = alpha;
+    return srgbaOut;
+}
+
+// clamp free sRGBAFromLms for DCK17L to avoid information lost before calculation of error differences
+float4 sRGBAFromLms_no_clamp (float3 lms, float alpha)
+{
+    //    0.0809445    -0.130504     0.116721
+    //    -0.0102485    0.0540193    -0.113615
+    //    -0.000365297  -0.00412162     0.693511
+    
+    float4 srgbaOut;
+    srgbaOut.r = 0.0809445*lms[0] - 0.130504*lms[1] + 0.116721*lms[2];
+    srgbaOut.g = -0.0102485*lms[0] + 0.0540193*lms[1] - 0.113615*lms[2];
+    srgbaOut.b = -0.000365297*lms[0] - 0.00412162*lms[1] + 0.693511*lms[2];
     srgbaOut.a = alpha;
     return srgbaOut;
 }
@@ -620,6 +639,26 @@ float3 applyDeuteranopiaVienot(
     return outLms;
 }
 
+
+//----------------------------------
+// Viénot 1999 - Tritan
+//----------------------------------
+
+float3 applyTritanopiaVienot(
+    float3 lms,
+    float severity)
+{
+    float3 outLms = lms;
+
+    outLms.z =
+        (1.0 - severity) * lms.z +
+        severity *
+        (-0.01224 * lms.x +
+          0.07203 * lms.y);
+
+    return outLms;
+}
+
 //----------------------------------
 // Brettel 1997 - Tritan
 //----------------------------------
@@ -818,29 +857,33 @@ float luminance(float4 srgba)
         0.0722 * srgba.b;
 }
 
-// dck16 with Machado CVD simulation
-float4 dck16M(
+// DCK16L (old version)
+// srgba is original color value of the pixel
+// simulated is a simulated CVD value of the pixel (you can use different CDV simulations)
+// parameters dck16RG, dck16RB and dck16GB are vital to control how strong the RG/GB/RB differences are applied.
+// the dck16RG, dck16RB and dck16GB parameters are needed to adapped individually for the severity level by the user.
+// finding appropriate parameters can be very tricky and is no easy taks and the reason DCK17L was created.
+// the CDV correction in DCK16L is determined independently by CDV simulation and the RG/GB/RB differences.
+// dck17PreserveLuma can be between 0.0 and 1.0 and defines the level of lumina preservation.
+// it is recommended to be at 1.0 so that the CDV correction does not over-saturate the brightness.
+//
+float4 dck16l(
              float4 srgba,
-             float dck16Severity,
+             float4 simulated,
              float dck16RG,
              float dck16RB,
              float dck16GB,
              float dck16PreserveLuma)
 {
     //----------------------------------
-    // DC1
+    // 1) CVD Simulation
     //----------------------------------
-
-    int sev =
-        clamp(
-            int(floor(dck16Severity + 0.5)),
-            0,
-            10);
-
-    float4 simulated =
-        applyProtanomalyRgb(
-            srgba,
-            sev);
+    
+    // call parameter simulated contains the values changed by used CVD simulation, while srgba is original value
+    
+    //----------------------------------
+    // 2) DC1 (daltonizeV1)
+    //----------------------------------
 
     float4 dc =
         daltonizeV1(
@@ -848,7 +891,7 @@ float4 dck16M(
             simulated);
 
     //----------------------------------
-    // K16
+    // 3) K16 correction
     //----------------------------------
 
     float rg =
@@ -879,7 +922,7 @@ float4 dck16M(
             1.0);
     
     //----------------------------------
-    // L (luminance preserve)
+    // 4) L (luminance preserve)
     //----------------------------------
 
     float yOriginal =
@@ -907,31 +950,27 @@ float4 dck16M(
     return dc;
 }
 
-// dck17 with Brettel+Vienot CVD simulation
-float4 dck17BV(
+
+// DCK17L
+// srgba is original color value of the pixel
+// simulated is a simulated CVD value of the pixel (you can use different CDV simulations)
+// only the RG/GB/RB differences of srgba and simulated determine the CDV correction in DCK17L.
+// dck17PreserveLuma can be between 0.0 and 1.0 and defines the level of lumina preservation.
+// it is recommended to be at 1.0 so that the CDV correction does not over-saturate the brightness.
+//
+float4 dck17l(
              float4 srgba,
-             float dck17Severity,
-             float dck17RG,
-             float dck17RB,
-             float dck17GB,
+             float4 simulated,
              float dck17PreserveLuma)
 {
     //----------------------------------
-    // Simulation
+    // 1) CVD Simulation
     //----------------------------------
-
-    float severity =
-        clamp(
-            dck17Severity / 10.0,
-            0.0,
-            1.0);
     
-    float3 lms = lmsFromSRGBA(srgba);
-    float3 simulatedLms = applyProtanopiaVienot(lms, severity);
-    float4 simulated = sRGBAFromLms(simulatedLms, 1.0);
+    // call parameter simulated contains the values changed by used CVD simulation, while srgba is original value
 
     //----------------------------------
-    // Original channel differences
+    // 2) Original channel differences
     //----------------------------------
 
     float rgOriginal =
@@ -944,7 +983,7 @@ float4 dck17BV(
         srgba.g - srgba.b;
 
     //----------------------------------
-    // Simulated channel differences
+    // 3) Simulated channel differences
     //----------------------------------
 
     float rgSimulated =
@@ -957,7 +996,7 @@ float4 dck17BV(
         simulated.g - simulated.b;
 
     //----------------------------------
-    // Information loss
+    // 4) Information loss
     //----------------------------------
 
     float rgError =
@@ -970,8 +1009,12 @@ float4 dck17BV(
         gbOriginal - gbSimulated;
 
     //----------------------------------
-    // DCK17 correction
+    // 5) DCK17 correction
     //----------------------------------
+    
+    float dck17RG = 1.0;
+    float dck17RB = 1.0;
+    float dck17GB = 1.0;
 
     float4 dc =
         srgba;
@@ -995,7 +1038,7 @@ float4 dck17BV(
             1.0);
 
     //----------------------------------
-    // Luminance preserve
+    // 6) Luminance preserve
     //----------------------------------
 
     float yOriginal =
@@ -1023,124 +1066,7 @@ float4 dck17BV(
     return dc;
 }
 
-// dck17 with Machado CVD simulation
-float4 dck17M(
-             float4 srgba,
-             float dck17Severity,
-             float dck17RG,
-             float dck17RB,
-             float dck17GB,
-             float dck17PreserveLuma)
-{
-    //----------------------------------
-    // Simulation
-    //----------------------------------
-
-    int sev =
-        clamp(
-            int(floor(dck17Severity + 0.5)),
-            0,
-            10);
-
-    float4 simulated =
-        applyProtanomalyRgb(
-            srgba,
-            sev);
-
-    //----------------------------------
-    // Original channel differences
-    //----------------------------------
-
-    float rgOriginal =
-        srgba.r - srgba.g;
-
-    float rbOriginal =
-        srgba.r - srgba.b;
-
-    float gbOriginal =
-        srgba.g - srgba.b;
-
-    //----------------------------------
-    // Simulated channel differences
-    //----------------------------------
-
-    float rgSimulated =
-        simulated.r - simulated.g;
-
-    float rbSimulated =
-        simulated.r - simulated.b;
-
-    float gbSimulated =
-        simulated.g - simulated.b;
-
-    //----------------------------------
-    // Information loss
-    //----------------------------------
-
-    float rgError =
-        rgOriginal - rgSimulated;
-
-    float rbError =
-        rbOriginal - rbSimulated;
-
-    float gbError =
-        gbOriginal - gbSimulated;
-
-    //----------------------------------
-    // DCK17 correction
-    //----------------------------------
-
-    float4 dc =
-        srgba;
-
-    dc.r +=
-        rgError * dck17RG +
-        rbError * dck17RB;
-
-    dc.g +=
-       -rgError * dck17RG +
-        gbError * dck17GB;
-
-    dc.b +=
-       -rbError * dck17RB -
-        gbError * dck17GB;
-
-    dc.rgb =
-        clamp(
-            dc.rgb,
-            0.0,
-            1.0);
-
-    //----------------------------------
-    // Luminance preserve
-    //----------------------------------
-
-    float yOriginal =
-        luminance(
-            srgba);
-
-    float yCorrected =
-        luminance(
-            dc);
-
-    float deltaY =
-        yCorrected -
-        yOriginal;
-
-    dc.rgb -=
-        float3(deltaY) *
-        dck17PreserveLuma;
-
-    dc.rgb =
-        clamp(
-            dc.rgb,
-            0.0,
-            1.0);
-
-    return dc;
-}
-
-fragment float4 fragment_DCKL(
+fragment float4 fragment_DCKL_protanomaly(
     VertexOut vert [[stage_in]],
     texture2d<float> screenTexture [[texture(0)]],
     constant Uniforms& uniforms [[buffer(0)]])
@@ -1150,44 +1076,202 @@ fragment float4 fragment_DCKL(
             defaultSampler,
             vert.texCoords);
     
-    float4 simuResult;
+    float4 simulated;
     if (uniforms.dcklSimu==0)
     {
-        // dck17 with Machado CVD simulation
-        simuResult = dck17M(
-            srgba,
-            uniforms.dcklSeverity,
-            uniforms.dcklRG,
-            uniforms.dcklRB,
-            uniforms.dcklGB,
-            uniforms.dcklPreserveLuma);
+        //----------------------------------
+        // Machado CVD simulation for Protanomaly
+        //----------------------------------
+
+        int sev =
+            clamp(
+                int(floor(uniforms.dcklSeverity + 0.5)),
+                0,
+                10);
+
+        simulated =
+            applyProtanomalyRgb(
+                srgba,
+                sev);
     }
     else if (uniforms.dcklSimu==1)
     {
-        // dck17 with Brettel+Vienot CVD simulation
-        simuResult = dck17BV(
-            srgba,
-            uniforms.dcklSeverity,
-            uniforms.dcklRG,
-            uniforms.dcklRB,
-            uniforms.dcklGB,
-            uniforms.dcklPreserveLuma);
+        //----------------------------------
+        // Vienot CVD simulation for Protanomaly
+        //----------------------------------
+
+        float severity =
+            clamp(
+                uniforms.dcklSeverity / 10.0,
+                0.0,
+                1.0);
+        
+        float3 lms = lmsFromSRGBA(srgba);
+        float3 simulatedLms = applyProtanopiaVienot(lms, severity);
+        simulated = sRGBAFromLms_no_clamp(simulatedLms, 1.0);
     }
     else
     {
-        // default is Machado
-        // dck17 with Machado CVD simulation
-        simuResult = dck17M(
+        simulated = srgba;
+    }
+    
+#ifdef USE_DCK17L
+    // DCK17L
+    float4 simuResult = dck17l(
             srgba,
-            uniforms.dcklSeverity,
+            simulated,
+            uniforms.dcklPreserveLuma);
+#else
+    // DCK16L
+    float4 simuResult = dck16l(
+            srgba,
+            simulated,
             uniforms.dcklRG,
             uniforms.dcklRB,
             uniforms.dcklGB,
             uniforms.dcklPreserveLuma);
-    }
+#endif
     
     return simuResult;
 }
+
+fragment float4 fragment_DCKL_deuteranomaly(
+    VertexOut vert [[stage_in]],
+    texture2d<float> screenTexture [[texture(0)]],
+    constant Uniforms& uniforms [[buffer(0)]])
+{
+    float4 srgba =
+        screenTexture.sample(
+            defaultSampler,
+            vert.texCoords);
+    
+    float4 simulated;
+    if (uniforms.dcklSimu==0)
+    {
+        //----------------------------------
+        // Machado CVD simulation for Deuteranomaly
+        //----------------------------------
+
+        int sev =
+            clamp(
+                int(floor(uniforms.dcklSeverity + 0.5)),
+                0,
+                10);
+
+        simulated =
+            applyDeuteranomalyRgb(
+                srgba,
+                sev);
+    }
+    else if (uniforms.dcklSimu==1)
+    {
+        //----------------------------------
+        // Vienot CVD simulation for Deuteranomaly
+        //----------------------------------
+
+        float severity =
+            clamp(
+                uniforms.dcklSeverity / 10.0,
+                0.0,
+                1.0);
+        
+        float3 lms = lmsFromSRGBA(srgba);
+        float3 simulatedLms = applyDeuteranopiaVienot(lms, severity);
+        simulated = sRGBAFromLms_no_clamp(simulatedLms, 1.0);
+    }
+    else
+    {
+        simulated = srgba;
+    }
+    
+#ifdef USE_DCK17L
+    // DCK17L
+    float4 simuResult = dck17l(
+            srgba,
+            simulated,
+            uniforms.dcklPreserveLuma);
+#else
+    // DCK16L
+    float4 simuResult = dck16l(
+            srgba,
+            simulated,
+            uniforms.dcklRG,
+            uniforms.dcklRB,
+            uniforms.dcklGB,
+            uniforms.dcklPreserveLuma);
+#endif
+    return simuResult;
+}
+
+fragment float4 fragment_DCKL_tritanomaly(
+    VertexOut vert [[stage_in]],
+    texture2d<float> screenTexture [[texture(0)]],
+    constant Uniforms& uniforms [[buffer(0)]])
+{
+    float4 srgba =
+        screenTexture.sample(
+            defaultSampler,
+            vert.texCoords);
+    
+    float4 simulated;
+    if (uniforms.dcklSimu==0)
+    {
+        //----------------------------------
+        // Machado CVD simulation for Tritanomaly
+        //----------------------------------
+
+        int sev =
+            clamp(
+                int(floor(uniforms.dcklSeverity + 0.5)),
+                0,
+                10);
+
+        simulated =
+            applyTritanomalyRgb(
+                srgba,
+                sev);
+    }
+    else if (uniforms.dcklSimu==1)
+    {
+        //----------------------------------
+        // Brettel CVD simulation for Tritanomaly
+        //----------------------------------
+
+        float severity =
+            clamp(
+                uniforms.dcklSeverity / 10.0,
+                0.0,
+                1.0);
+        
+        float3 lms = lmsFromSRGBA(srgba);
+        float3 simulatedLms = applyTritanopiaBrettel(lms, severity);
+        // WARNING: Viénot is not good for tritanopia, we need to switch to Brettel.
+        //float3 simulatedLms = applyTritanopiaVienot(lms, severity);
+        simulated = sRGBAFromLms_no_clamp(simulatedLms, 1.0);
+    }
+    else
+    {
+        simulated = srgba;
+    }
+#ifdef USE_DCK17L
+    // DCK17L
+    float4 simuResult = dck17l(
+            srgba,
+            simulated,
+            uniforms.dcklPreserveLuma);
+#else
+    // DCK16L
+    float4 simuResult = dck16l(
+            srgba,
+            simulated,
+            uniforms.dcklRG,
+            uniforms.dcklRB,
+            uniforms.dcklGB,
+            uniforms.dcklPreserveLuma);
+#endif
+    return simuResult;
+}
+
 
 bool colorsAreCompatibleWithAA(float r0, float g0, float r1, float g1)
 {

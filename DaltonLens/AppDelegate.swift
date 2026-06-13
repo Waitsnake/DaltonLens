@@ -267,25 +267,25 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     NSRect(x: 10, y: 150, width: 80, height: 20)
 
                 let rgLabel =
-                    NSTextField(labelWithString: "RG")
+                    NSTextField(labelWithString: "RG (16 only)")
 
                 rgLabel.frame =
                     NSRect(x: 10, y: 120, width: 80, height: 20)
 
                 let rbLabel =
-                    NSTextField(labelWithString: "RB")
+                    NSTextField(labelWithString: "RB (16 only)")
 
                 rbLabel.frame =
                     NSRect(x: 10, y: 90, width: 80, height: 20)
 
                 let gbLabel =
-                    NSTextField(labelWithString: "GB")
+                    NSTextField(labelWithString: "GB (16 only)")
 
                 gbLabel.frame =
                     NSRect(x: 10, y: 60, width: 80, height: 20)
 
                 let preserveLumaLabel =
-                    NSTextField(labelWithString: "Pres Luma")
+                    NSTextField(labelWithString: "Pres. Luma")
 
                 preserveLumaLabel.frame =
                     NSRect(x: 10, y: 30, width: 80, height: 20)

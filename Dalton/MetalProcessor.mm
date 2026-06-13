@@ -95,7 +95,15 @@
                                         [self createPipelineWithFragment:@"fragment_daltonizeV1_tritanomaly"],
                                         ];
     
-    _pipelineStates[@(DCKL)] = @[[self createPipelineWithFragment:@"fragment_DCKL"]];
+    // DCKL only supports protanomaly, deuteranomaly and tritanomaly
+    _pipelineStates[@(DCKL)] = @[
+                                        [self createPipelineWithFragment:@"fragment_DCKL_protanomaly"],
+                                        [self createPipelineWithFragment:@"fragment_DCKL_deuteranomaly"],
+                                        [self createPipelineWithFragment:@"fragment_DCKL_tritanomaly"],
+                                        [self createPipelineWithFragment:@"fragment_DCKL_protanomaly"],
+                                        [self createPipelineWithFragment:@"fragment_DCKL_deuteranomaly"],
+                                        [self createPipelineWithFragment:@"fragment_DCKL_tritanomaly"],
+                                        ];
     
     _pipelineStates[@(SwitchCbCr)] = @[[self createPipelineWithFragment:@"fragment_swapCbCr"]];
     _pipelineStates[@(SwitchAndFlipCbCr)] = @[[self createPipelineWithFragment:@"fragment_swapAndFlipCbCr"]];
