@@ -423,6 +423,28 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
                     dview.needsDisplay = true
                 }
+                let defaults = UserDefaults.standard
+
+                defaults.set(dview.dcklSeverity,
+                             forKey: "DCKLSeverity")
+
+                defaults.set(dview.dcklSimu,
+                             forKey: "DCKLSimu")
+
+                defaults.set(dview.dcklRG,
+                             forKey: "DCKLRG")
+
+                defaults.set(dview.dcklRB,
+                             forKey: "DCKLRB")
+
+                defaults.set(dview.dcklGB,
+                             forKey: "DCKLGB")
+
+                defaults.set(dview.dcklPreserveLuma,
+                             forKey: "DCKLPreserveLuma")
+
+                defaults.synchronize()
+                
             }
             else if let processingType = menuItemsToProcessingMode[sender] {
                 
@@ -778,6 +800,45 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             let processingType = DLProcessingMode(rawValue:UInt32(intValue2))
             daltonView?.processingMode = processingType
             setProcessingMode(mode:processingType)
+        }
+        
+        if let dview = daltonView
+        {
+            if defaults.object(forKey: "DCKLSeverity") != nil
+            {
+                dview.dcklSeverity =
+                    defaults.float(forKey: "DCKLSeverity")
+            }
+
+            if defaults.object(forKey: "DCKLSimu") != nil
+            {
+                dview.dcklSimu =
+                    Int32(defaults.integer(forKey: "DCKLSimu"))
+            }
+
+            if defaults.object(forKey: "DCKLRG") != nil
+            {
+                dview.dcklRG =
+                    defaults.float(forKey: "DCKLRG")
+            }
+
+            if defaults.object(forKey: "DCKLRB") != nil
+            {
+                dview.dcklRB =
+                    defaults.float(forKey: "DCKLRB")
+            }
+
+            if defaults.object(forKey: "DCKLGB") != nil
+            {
+                dview.dcklGB =
+                    defaults.float(forKey: "DCKLGB")
+            }
+
+            if defaults.object(forKey: "DCKLPreserveLuma") != nil
+            {
+                dview.dcklPreserveLuma =
+                    defaults.float(forKey: "DCKLPreserveLuma")
+            }
         }
         
         if (defaults.value(forKey: "LaunchAtStartup") != nil) {

@@ -197,7 +197,7 @@ class DaltonView: MTKView {
     public var dcklRB : Float = 1.0
     public var dcklGB : Float = 1.0
     public var dcklPreserveLuma : Float = 1.0
-    public var dcklSimu : Int32 = 0
+    public var dcklSimu : Int32 = 1
     
     struct MetalData {
 
