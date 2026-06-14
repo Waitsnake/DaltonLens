@@ -267,19 +267,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     NSRect(x: 10, y: 150, width: 80, height: 20)
 
                 let rgLabel =
-                    NSTextField(labelWithString: "RG (16 only)")
+                    NSTextField(labelWithString: "dckRG")
 
                 rgLabel.frame =
                     NSRect(x: 10, y: 120, width: 80, height: 20)
 
                 let rbLabel =
-                    NSTextField(labelWithString: "RB (16 only)")
+                    NSTextField(labelWithString: "dckRB")
 
                 rbLabel.frame =
                     NSRect(x: 10, y: 90, width: 80, height: 20)
 
                 let gbLabel =
-                    NSTextField(labelWithString: "GB (16 only)")
+                    NSTextField(labelWithString: "dckGB")
 
                 gbLabel.frame =
                     NSRect(x: 10, y: 60, width: 80, height: 20)

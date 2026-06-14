@@ -961,6 +961,9 @@ float4 dck16l(
 float4 dck17l(
              float4 srgba,
              float4 simulated,
+             float dckRG,
+             float dckRB,
+             float dckGB,
              float dckPreserveLuma)
 {
     //----------------------------------
@@ -1011,10 +1014,6 @@ float4 dck17l(
     //----------------------------------
     // 5) DCK17 correction
     //----------------------------------
-    
-    float dckRG = 1.0;
-    float dckRB = 1.0;
-    float dckGB = 1.0;
 
     float4 dc =
         srgba;
@@ -1075,6 +1074,9 @@ float4 dck17l(
 float4 dck18l(
              float4 srgba,
              float4 simulated,
+             float dckRG,
+             float dckRB,
+             float dckGB,
              float dckPreserveLuma)
 {
     //----------------------------------
@@ -1119,10 +1121,6 @@ float4 dck18l(
     //----------------------------------
     // 4) DCK17 correction
     //----------------------------------
-
-    float dckRG = 1.0;
-    float dckRB = 1.0;
-    float dckGB = 1.0;
 
     float deltaR =
         rgError * dckRG +
@@ -1261,11 +1259,17 @@ fragment float4 fragment_DCKL_protanomaly(
     float4 simuResult = dck17l(
             srgba,
             simulated,
+            uniforms.dcklRG,
+            uniforms.dcklRB,
+            uniforms.dcklGB,
             uniforms.dcklPreserveLuma);
 #elif defined(USE_DCK18L)
     float4 simuResult = dck18l(
             srgba,
             simulated,
+            uniforms.dcklRG,
+            uniforms.dcklRB,
+            uniforms.dcklGB,
             uniforms.dcklPreserveLuma);
 #else
     // DCK16L
@@ -1335,11 +1339,17 @@ fragment float4 fragment_DCKL_deuteranomaly(
     float4 simuResult = dck17l(
             srgba,
             simulated,
+            uniforms.dcklRG,
+            uniforms.dcklRB,
+            uniforms.dcklGB,
             uniforms.dcklPreserveLuma);
 #elif defined(USE_DCK18L)
     float4 simuResult = dck18l(
             srgba,
             simulated,
+            uniforms.dcklRG,
+            uniforms.dcklRB,
+            uniforms.dcklGB,
             uniforms.dcklPreserveLuma);
 #else
     // DCK16L
@@ -1409,11 +1419,17 @@ fragment float4 fragment_DCKL_tritanomaly(
     float4 simuResult = dck17l(
             srgba,
             simulated,
+            uniforms.dcklRG,
+            uniforms.dcklRB,
+            uniforms.dcklGB,
             uniforms.dcklPreserveLuma);
 #elif defined(USE_DCK18L)
     float4 simuResult = dck18l(
             srgba,
             simulated,
+            uniforms.dcklRG,
+            uniforms.dcklRB,
+            uniforms.dcklGB,
             uniforms.dcklPreserveLuma);
 #else
     // DCK16L
