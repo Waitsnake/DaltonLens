@@ -60,6 +60,7 @@ struct Uniforms
     float dcklRG;
     float dcklRB;
     float dcklGB;
+    float dcklSoftCompress;
     float dcklPreserveLuma;
     int dcklSimu;
 };
@@ -1077,6 +1078,7 @@ float4 dck18l(
              float dckRG,
              float dckRB,
              float dckGB,
+             float dckSoftCompress,
              float dckPreserveLuma)
 {
     //----------------------------------
@@ -1135,23 +1137,41 @@ float4 dck18l(
         gbError * dckGB;
 
     //----------------------------------
-    // 5) Soft compression
+    // 5) Soft Compression
     //----------------------------------
 
-    float gainR =
+    float distR =
         (deltaR >= 0.0)
-        ? sqrt(max(0.0, 1.0 - srgba.r))
-        : sqrt(max(0.0, srgba.r));
+        ? max(0.0, 1.0 - srgba.r)
+        : max(0.0, srgba.r);
 
-    float gainG =
+    float distG =
         (deltaG >= 0.0)
-        ? sqrt(max(0.0, 1.0 - srgba.g))
-        : sqrt(max(0.0, srgba.g));
-
-    float gainB =
+        ? max(0.0, 1.0 - srgba.g)
+        : max(0.0, srgba.g);
+    
+    float distB =
         (deltaB >= 0.0)
-        ? sqrt(max(0.0, 1.0 - srgba.b))
-        : sqrt(max(0.0, srgba.b));
+        ? max(0.0, 1.0 - srgba.b)
+        : max(0.0, srgba.b);
+    
+    float exponent =
+        0.5 * dckSoftCompress;
+    
+    float gainR =
+        (dckSoftCompress <= 0.0)
+        ? 1.0
+        : pow(distR, exponent);
+    
+    float gainG =
+        (dckSoftCompress <= 0.0)
+        ? 1.0
+        : pow(distG, exponent);
+    
+    float gainB =
+        (dckSoftCompress <= 0.0)
+        ? 1.0
+        : pow(distB, exponent);
 
     //----------------------------------
     // 6) Apply correction
@@ -1270,6 +1290,7 @@ fragment float4 fragment_DCKL_protanomaly(
             uniforms.dcklRG,
             uniforms.dcklRB,
             uniforms.dcklGB,
+            uniforms.dcklSoftCompress,
             uniforms.dcklPreserveLuma);
 #else
     // DCK16L
@@ -1350,6 +1371,7 @@ fragment float4 fragment_DCKL_deuteranomaly(
             uniforms.dcklRG,
             uniforms.dcklRB,
             uniforms.dcklGB,
+            uniforms.dcklSoftCompress,
             uniforms.dcklPreserveLuma);
 #else
     // DCK16L
@@ -1430,6 +1452,7 @@ fragment float4 fragment_DCKL_tritanomaly(
             uniforms.dcklRG,
             uniforms.dcklRB,
             uniforms.dcklGB,
+            uniforms.dcklSoftCompress,
             uniforms.dcklPreserveLuma);
 #else
     // DCK16L

@@ -196,6 +196,7 @@ class DaltonView: MTKView {
     public var dcklRG : Float = 1.0
     public var dcklRB : Float = 1.0
     public var dcklGB : Float = 1.0
+    public var dcklSoftCompress : Float = 1.0
     public var dcklPreserveLuma : Float = 1.0
     public var dcklSimu : Int32 = 1
     
@@ -310,6 +311,7 @@ class DaltonView: MTKView {
         uniformsBuffer.pointee.dcklRG = dcklRG;
         uniformsBuffer.pointee.dcklRB = dcklRB;
         uniformsBuffer.pointee.dcklGB = dcklGB;
+        uniformsBuffer.pointee.dcklSoftCompress = dcklSoftCompress;
         uniformsBuffer.pointee.dcklPreserveLuma = dcklPreserveLuma;
         uniformsBuffer.pointee.dcklSimu = dcklSimu;
     

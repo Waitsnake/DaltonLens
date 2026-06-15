@@ -248,7 +248,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                             x: 0,
                             y: 0,
                             width: 260,
-                            height: 210))
+                            height: 240))
 
                 //----------------------------------
                 // Labels
@@ -258,30 +258,36 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     NSTextField(labelWithString: "Severity")
 
                 severityLabel.frame =
-                    NSRect(x: 10, y: 180, width: 80, height: 20)
+                    NSRect(x: 10, y: 210, width: 80, height: 20)
 
                 let simuLabel =
                     NSTextField(labelWithString: "Simulation")
 
                 simuLabel.frame =
-                    NSRect(x: 10, y: 150, width: 80, height: 20)
+                    NSRect(x: 10, y: 180, width: 80, height: 20)
 
                 let rgLabel =
                     NSTextField(labelWithString: "dckRG")
 
                 rgLabel.frame =
-                    NSRect(x: 10, y: 120, width: 80, height: 20)
+                    NSRect(x: 10, y: 150, width: 80, height: 20)
 
                 let rbLabel =
                     NSTextField(labelWithString: "dckRB")
 
                 rbLabel.frame =
-                    NSRect(x: 10, y: 90, width: 80, height: 20)
+                    NSRect(x: 10, y: 120, width: 80, height: 20)
 
                 let gbLabel =
                     NSTextField(labelWithString: "dckGB")
 
                 gbLabel.frame =
+                    NSRect(x: 10, y: 90, width: 80, height: 20)
+
+                let softCompressLabel =
+                    NSTextField(labelWithString: "Soft Comp.")
+
+                softCompressLabel.frame =
                     NSRect(x: 10, y: 60, width: 80, height: 20)
 
                 let preserveLumaLabel =
@@ -298,7 +304,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     NSTextField(
                         frame: NSRect(
                             x: 100,
-                            y: 175,
+                            y: 205,
                             width: 120,
                             height: 24))
 
@@ -313,7 +319,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     NSPopUpButton(
                         frame: NSRect(
                             x: 100,
-                            y: 145,
+                            y: 175,
                             width: 120,
                             height: 26),
                         pullsDown: false)
@@ -334,7 +340,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     NSTextField(
                         frame: NSRect(
                             x: 100,
-                            y: 115,
+                            y: 145,
                             width: 120,
                             height: 24))
 
@@ -345,7 +351,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     NSTextField(
                         frame: NSRect(
                             x: 100,
-                            y: 85,
+                            y: 115,
                             width: 120,
                             height: 24))
 
@@ -356,12 +362,23 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     NSTextField(
                         frame: NSRect(
                             x: 100,
-                            y: 55,
+                            y: 85,
                             width: 120,
                             height: 24))
 
                 gbField.stringValue =
                     String(dview.dcklGB)
+
+                let softCompressField =
+                    NSTextField(
+                        frame: NSRect(
+                            x: 100,
+                            y: 55,
+                            width: 120,
+                            height: 24))
+
+                softCompressField.stringValue =
+                    String(dview.dcklSoftCompress)
 
                 let preserveLumaField =
                     NSTextField(
@@ -381,6 +398,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 view.addSubview(rgLabel)
                 view.addSubview(rbLabel)
                 view.addSubview(gbLabel)
+                view.addSubview(softCompressLabel)
                 view.addSubview(preserveLumaLabel)
 
                 view.addSubview(severityField)
@@ -388,6 +406,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 view.addSubview(rgField)
                 view.addSubview(rbField)
                 view.addSubview(gbField)
+                view.addSubview(softCompressField)
                 view.addSubview(preserveLumaField)
 
                 alert.accessoryView = view
@@ -418,30 +437,44 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                     dview.dcklGB =
                         Float(gbField.stringValue) ?? 1.0
 
+                    dview.dcklSoftCompress =
+                        Float(softCompressField.stringValue) ?? 1.0
+
                     dview.dcklPreserveLuma =
                         Float(preserveLumaField.stringValue) ?? 1.0
 
                     dview.needsDisplay = true
                 }
+
                 let defaults = UserDefaults.standard
 
-                defaults.set(dview.dcklSeverity,
-                             forKey: "DCKLSeverity")
+                defaults.set(
+                    dview.dcklSeverity,
+                    forKey: "DCKLSeverity")
 
-                defaults.set(dview.dcklSimu,
-                             forKey: "DCKLSimu")
+                defaults.set(
+                    dview.dcklSimu,
+                    forKey: "DCKLSimu")
 
-                defaults.set(dview.dcklRG,
-                             forKey: "DCKLRG")
+                defaults.set(
+                    dview.dcklRG,
+                    forKey: "DCKLRG")
 
-                defaults.set(dview.dcklRB,
-                             forKey: "DCKLRB")
+                defaults.set(
+                    dview.dcklRB,
+                    forKey: "DCKLRB")
 
-                defaults.set(dview.dcklGB,
-                             forKey: "DCKLGB")
+                defaults.set(
+                    dview.dcklGB,
+                    forKey: "DCKLGB")
 
-                defaults.set(dview.dcklPreserveLuma,
-                             forKey: "DCKLPreserveLuma")
+                defaults.set(
+                    dview.dcklSoftCompress,
+                    forKey: "DCKLSoftCompress")
+
+                defaults.set(
+                    dview.dcklPreserveLuma,
+                    forKey: "DCKLPreserveLuma")
 
                 defaults.synchronize()
                 
@@ -832,6 +865,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             {
                 dview.dcklGB =
                     defaults.float(forKey: "DCKLGB")
+            }
+            
+            if defaults.object(forKey: "DCKLSoftCompress") != nil
+            {
+                dview.dcklSoftCompress =
+                    defaults.float(forKey: "DCKLSoftCompress")
             }
 
             if defaults.object(forKey: "DCKLPreserveLuma") != nil
