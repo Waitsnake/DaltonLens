@@ -734,6 +734,18 @@ fragment float4 fragment_simulateDaltonism_protanomaly(VertexOut vert [[stage_in
 {
     float4 srgba = screenTexture.sample(defaultSampler, vert.texCoords);
     float4 srgbaOut = applyProtanomalyRgb(srgba,uniforms.severity);
+    
+    /* simulate with Vienot
+    float severity =
+        clamp(
+            uniforms.severity / 10.0,
+            0.0,
+            1.0);
+    float3 lms = lmsFromSRGBA(srgba);
+    float3 simulatedLms = applyProtanopiaVienot(lms, severity);
+    float4 srgbaOut = sRGBAFromLms_no_clamp(simulatedLms, 1.0);
+    */
+    
     return srgbaOut;
 }
 

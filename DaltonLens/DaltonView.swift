@@ -190,10 +190,10 @@ class DaltonView: MTKView {
     
     private var frameCount : Int32 = 0
     
-    public var severity : Int32 = 5
+    public var severity : Int32 = 0
     
-    public var dcklSeverity : Float = 3.0
-    public var dcklRG : Float = 1.0
+    public var dcklSeverity : Float = 4.0
+    public var dcklRG : Float = 0.9
     public var dcklRB : Float = 1.0
     public var dcklGB : Float = 1.0
     public var dcklSoftCompress : Float = 1.0
