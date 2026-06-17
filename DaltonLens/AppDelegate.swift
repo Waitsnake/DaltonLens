@@ -22,6 +22,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                                              action: #selector(AppDelegate.toggleLaunchAtStartup(sender:)),
                                              keyEquivalent: "")
     
+    let screenshotMenuItem = NSMenuItem(title: "Screenshot",
+                                        action: #selector(AppDelegate.setProcessingMode(sender:)),
+                                        keyEquivalent: "p")
+    
     let protanopeMenuItem = NSMenuItem(title: "Protanope",
                                        action: #selector(AppDelegate.setBlindnessType(sender:)),
                                        keyEquivalent: "")
@@ -225,15 +229,93 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         
         if let dview = daltonView {
             
-            if sender == switchToggleSeverityMenuItem
+            
+            if sender == screenshotMenuItem
             {
-                if dview.severity >= 10
+                // auslöser des screenshot
+                dview.takeScreenshot = true;
+            }
+            else if sender == switchToggleSeverityMenuItem
+            {
+                let alert = NSAlert()
+
+                alert.messageText =
+                    "Set Severity"
+
+                let view =
+                    NSView(
+                        frame: NSRect(
+                            x: 0,
+                            y: 0,
+                            width: 240,
+                            height: 60))
+
+                //----------------------------------
+                // Label
+                //----------------------------------
+
+                let severityLabel =
+                    NSTextField(
+                        labelWithString:
+                            "Severity")
+
+                severityLabel.frame =
+                    NSRect(
+                        x: 10,
+                        y: 30,
+                        width: 80,
+                        height: 20)
+
+                //----------------------------------
+                // Field
+                //----------------------------------
+
+                let severityField =
+                    NSTextField(
+                        frame: NSRect(
+                            x: 90,
+                            y: 25,
+                            width: 120,
+                            height: 24))
+
+                severityField.stringValue =
+                    String(dview.severity)
+
+                //----------------------------------
+
+                view.addSubview(severityLabel)
+                view.addSubview(severityField)
+
+                alert.accessoryView = view
+
+                alert.addButton(
+                    withTitle: "OK")
+
+                alert.addButton(
+                    withTitle: "Cancel")
+
+                let result =
+                    alert.runModal()
+
+                //----------------------------------
+                // OK ?
+                //----------------------------------
+
+                if result ==
+                    .alertFirstButtonReturn
                 {
-                    dview.severity = 0
-                }
-                else
-                {
-                    dview.severity = dview.severity + 1
+                    dview.severity = Int32(severityField.stringValue) ?? dview.severity
+
+                    dview.needsDisplay = true
+
+                    let defaults =
+                        UserDefaults.standard
+
+                    defaults.set(
+                        dview.severity,
+                        forKey: "Severity")
+
+                    defaults.synchronize()
                 }
             }
             else if sender == dcklParasMenuItem
@@ -480,13 +562,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 
             }
             else if let processingType = menuItemsToProcessingMode[sender] {
-                
-                // set default severity when enabling it to 5
-                if sender == daltonizeV1MenuItem
-                {
-                    dview.severity = 5
-                }
-                                
+                                            
                 dview.processingMode = processingType
                 dview.needsDisplay = true
                 
@@ -500,7 +576,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
             
             // Disable all items
-            if !(sender == switchToggleSeverityMenuItem || sender == dcklParasMenuItem)
+            if !(sender == switchToggleSeverityMenuItem || sender == dcklParasMenuItem || sender == screenshotMenuItem)
             {
                 for item in menuItemsToProcessingMode.keys {
                     item.state = .off
@@ -591,6 +667,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(NSMenuItem.separator())
         
         menu.addItem(launchAtStartupMenuItem)
+        menu.addItem(screenshotMenuItem)
         
         menu.addItem(NSMenuItem.separator())
         menu.addItem(NSMenuItem(title: "Quit", action: #selector(AppDelegate.quit), keyEquivalent: "q"))

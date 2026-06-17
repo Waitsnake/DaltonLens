@@ -200,6 +200,8 @@ class DaltonView: MTKView {
     public var dcklPreserveLuma : Float = 1.0
     public var dcklSimu : Int32 = 1
     
+    public var takeScreenshot = false
+    
     struct MetalData {
 
         let mtlRenderer : DLMetalRenderer
@@ -335,6 +337,116 @@ class DaltonView: MTKView {
             
             commandBuffer!.present(drawable)
             commandBuffer!.commit()
+            
+            commandBuffer!.waitUntilCompleted()
+            
+            if takeScreenshot
+            {
+                takeScreenshot = false
+                
+                NSLog(
+                    "Take Screenshot. Drawable size %dx%d",
+                    drawable.texture.width,
+                    drawable.texture.height)
+                
+                let texture = drawable.texture
+                
+                let width  = texture.width
+                let height = texture.height
+                
+                let bytesPerPixel = 4
+                let bytesPerRow   = width * bytesPerPixel
+                
+                var pixels =
+                [UInt8](
+                    repeating: 0,
+                    count: bytesPerRow * height)
+                
+                texture.getBytes(
+                    &pixels,
+                    bytesPerRow: bytesPerRow,
+                    from: MTLRegionMake2D(
+                        0,
+                        0,
+                        width,
+                        height),
+                    mipmapLevel: 0)
+                
+                let colorSpace =
+                CGColorSpaceCreateDeviceRGB()
+                
+                let data =
+                Data(pixels)
+                
+                guard let provider =
+                        CGDataProvider(
+                            data: data as CFData)
+                else
+                {
+                    NSLog("Failed to create provider")
+                    return
+                }
+                
+                guard let image =
+                        CGImage(
+                            width: width,
+                            height: height,
+                            bitsPerComponent: 8,
+                            bitsPerPixel: 32,
+                            bytesPerRow: bytesPerRow,
+                            space: colorSpace,
+                            bitmapInfo:
+                                CGBitmapInfo(
+                                    rawValue:
+                                        CGImageAlphaInfo.noneSkipFirst.rawValue
+                                        |
+                                        CGBitmapInfo.byteOrder32Little.rawValue),
+                            provider: provider,
+                            decode: nil,
+                            shouldInterpolate: false,
+                            intent: .defaultIntent)
+                else
+                {
+                    NSLog("Failed to create CGImage")
+                    return
+                }
+                
+                let rep =
+                NSBitmapImageRep(
+                    cgImage: image)
+                
+                guard let pngData =
+                        rep.representation(
+                            using: .png,
+                            properties: [:])
+                else
+                {
+                    NSLog("Failed to create PNG")
+                    return
+                }
+                
+                let file =
+                FileManager.default.temporaryDirectory
+                    .appendingPathComponent(
+                        "DaltonLensScreenshot.png")
+                
+                do
+                {
+                    try pngData.write(to: file)
+                    
+                    NSLog(
+                        "Saved PNG to %@",
+                        file.path)
+                }
+                catch
+                {
+                    NSLog(
+                        "PNG write failed: %@",
+                        error.localizedDescription)
+                }
+                
+            }
+              
         }
         
         frameCount = frameCount + 1;
