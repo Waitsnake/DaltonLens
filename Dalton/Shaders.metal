@@ -1384,11 +1384,13 @@ float4 dck19l(
     //----------------------------------
     // Visibility estimate
     //----------------------------------
-
+    
     float visibility =
-        abs(rgError) +
-        abs(rbError) +
-        abs(gbError);
+        length(
+            float3(
+                rgError,
+                rbError,
+                gbError));
 
     visibility =
         clamp(
