@@ -6,7 +6,7 @@
 
 #undef USE_ONE_NIGHT_HACK
 
-// use DCK16L or DCK17L od DCK18L(recommended)
+// use DCK16L, DCK17L, DCK18L(recommended) or USE_DCK19L (experimental)
 #define USE_DCK18L
 
 #include <metal_stdlib>
@@ -1236,6 +1236,184 @@ float4 dck18l(
     return dc;
 }
 
+// DCK19L (DCK18L with adaptive luma preservation)
+// srgba is original color value of the pixel
+// simulated is a simulated CVD value of the pixel (you can use different CDV simulations)
+// only the RG/GB/RB differences of srgba and simulated determine the CDV correction in DCK18L.
+// dckPreserveLuma can be between 0.0 and 1.0 and defines the level of Adaptive Luminance Preserve=1.0. it is recommended to be at 1.0 so that the CDV correction does not over-saturate the brightness. dckSoftCompress is no longer needed and can be 0 if dckPreserveLuma is used at 1.0
+// Adaptive Luminance Preserve let correction values that would be clipped to stong over 255 of color chanel and paint those clipped areas in pink/magenta colors.
+float4 dck19l(
+             float4 srgba,
+             float4 simulated,
+             float dckRG,
+             float dckRB,
+             float dckGB,
+             float dckSoftCompress,
+             float dckPreserveLuma)
+{
+    //----------------------------------
+    // 1) Original channel differences
+    //----------------------------------
+
+    float rgOriginal =
+        srgba.r - srgba.g;
+
+    float rbOriginal =
+        srgba.r - srgba.b;
+
+    float gbOriginal =
+        srgba.g - srgba.b;
+
+    //----------------------------------
+    // 2) Simulated channel differences
+    //----------------------------------
+
+    float rgSimulated =
+        simulated.r - simulated.g;
+
+    float rbSimulated =
+        simulated.r - simulated.b;
+
+    float gbSimulated =
+        simulated.g - simulated.b;
+
+    //----------------------------------
+    // 3) Information loss
+    //----------------------------------
+
+    float rgError =
+        rgOriginal - rgSimulated;
+
+    float rbError =
+        rbOriginal - rbSimulated;
+
+    float gbError =
+        gbOriginal - gbSimulated;
+
+    //----------------------------------
+    // 4) DCK17 correction
+    //----------------------------------
+
+    float deltaR =
+        rgError * dckRG +
+        rbError * dckRB;
+
+    float deltaG =
+       -rgError * dckRG +
+        gbError * dckGB;
+
+    float deltaB =
+       -rbError * dckRB -
+        gbError * dckGB;
+
+    //----------------------------------
+    // 5) Soft Compression
+    //----------------------------------
+
+    float distR =
+        (deltaR >= 0.0)
+        ? max(0.0, 1.0 - srgba.r)
+        : max(0.0, srgba.r);
+
+    float distG =
+        (deltaG >= 0.0)
+        ? max(0.0, 1.0 - srgba.g)
+        : max(0.0, srgba.g);
+    
+    float distB =
+        (deltaB >= 0.0)
+        ? max(0.0, 1.0 - srgba.b)
+        : max(0.0, srgba.b);
+    
+    float exponent =
+        0.5 * dckSoftCompress;
+    
+    float gainR =
+        (dckSoftCompress <= 0.0)
+        ? 1.0
+        : pow(distR, exponent);
+    
+    float gainG =
+        (dckSoftCompress <= 0.0)
+        ? 1.0
+        : pow(distG, exponent);
+    
+    float gainB =
+        (dckSoftCompress <= 0.0)
+        ? 1.0
+        : pow(distB, exponent);
+
+    //----------------------------------
+    // 6) Apply correction
+    //----------------------------------
+
+    float4 dc =
+        srgba;
+
+    dc.r +=
+        deltaR * gainR;
+
+    dc.g +=
+        deltaG * gainG;
+
+    dc.b +=
+        deltaB * gainB;
+
+    dc.rgb =
+        clamp(
+            dc.rgb,
+            0.0,
+            1.0);
+
+    //----------------------------------
+    // 7) Adaptive Luminance Preserve
+    //----------------------------------
+
+    float yOriginal =
+        luminance(
+            srgba);
+
+    float yCorrected =
+        luminance(
+            dc);
+
+    float deltaY =
+        yCorrected -
+        yOriginal;
+
+    //----------------------------------
+    // Visibility estimate
+    //----------------------------------
+
+    float visibility =
+        abs(rgError) +
+        abs(rbError) +
+        abs(gbError);
+
+    visibility =
+        clamp(
+            visibility,
+            0.0,
+            1.0);
+
+    //----------------------------------
+    // Adaptive LP
+    //----------------------------------
+
+    float lp =
+        dckPreserveLuma *
+        (1.0 + visibility);
+
+    //----------------------------------
+    // Apply
+    //----------------------------------
+
+    dc.rgb -=
+        float3(deltaY) *
+        lp;
+
+    return dc;
+}
 
 fragment float4 fragment_DCKL_protanomaly(
     VertexOut vert [[stage_in]],
@@ -1297,6 +1475,15 @@ fragment float4 fragment_DCKL_protanomaly(
             uniforms.dcklPreserveLuma);
 #elif defined(USE_DCK18L)
     float4 simuResult = dck18l(
+            srgba,
+            simulated,
+            uniforms.dcklRG,
+            uniforms.dcklRB,
+            uniforms.dcklGB,
+            uniforms.dcklSoftCompress,
+            uniforms.dcklPreserveLuma);
+#elif defined(USE_DCK19L)
+    float4 simuResult = dck19l(
             srgba,
             simulated,
             uniforms.dcklRG,
@@ -1385,6 +1572,15 @@ fragment float4 fragment_DCKL_deuteranomaly(
             uniforms.dcklGB,
             uniforms.dcklSoftCompress,
             uniforms.dcklPreserveLuma);
+#elif defined(USE_DCK19L)
+    float4 simuResult = dck19l(
+            srgba,
+            simulated,
+            uniforms.dcklRG,
+            uniforms.dcklRB,
+            uniforms.dcklGB,
+            uniforms.dcklSoftCompress,
+            uniforms.dcklPreserveLuma);
 #else
     // DCK16L
     float4 simuResult = dck16l(
@@ -1459,6 +1655,15 @@ fragment float4 fragment_DCKL_tritanomaly(
             uniforms.dcklPreserveLuma);
 #elif defined(USE_DCK18L)
     float4 simuResult = dck18l(
+            srgba,
+            simulated,
+            uniforms.dcklRG,
+            uniforms.dcklRB,
+            uniforms.dcklGB,
+            uniforms.dcklSoftCompress,
+            uniforms.dcklPreserveLuma);
+#elif defined(USE_DCK19L)
+    float4 simuResult = dck19l(
             srgba,
             simulated,
             uniforms.dcklRG,
