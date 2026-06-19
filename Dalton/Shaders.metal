@@ -1391,6 +1391,8 @@ float4 dck19l(
                 rgError,
                 rbError,
                 gbError));
+    
+    visibility /= 1.7320508; // normalization bc sqrt(3) = 1.7320508
 
     visibility =
         clamp(
